@@ -1,0 +1,19 @@
+# macOS
+.DS_Store
+
+# Xcode — stan użytkownika, nie należy do repozytorium
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+*.xccheckout
+
+# Build
+build/
+DerivedData/
+*.moved-aside
+*.hmap
+*.dSYM
+*.dSYM.zip
+
+# Materiały do instalatora zostają lokalne
+* - instalator/
