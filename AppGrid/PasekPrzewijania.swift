@@ -36,6 +36,7 @@ final class CienkiScroller: NSScroller {
 }
 
 /// Podmiana paska w widokach przewijania, które SwiftUI zbudował pod spodem.
+@MainActor
 enum PasekPrzewijania {
 
     /// Wstawia `CienkiScroller` do każdego `NSScrollView` w drzewie widoku.

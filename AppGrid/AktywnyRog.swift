@@ -23,7 +23,11 @@ final class AktywnyRog {
     // Zegar nie wymaga żadnej zgody, więc nie wciąga [U] w klikanie w Ustawieniach.
     private static let taktSekundy: TimeInterval = 0.2
 
-    func wlacz(rog: RogEkranu, gamemode: Bool, akcja: @escaping () -> Void) {
+    /// Luz dla zegara: system może skleić takt z innymi wybudzeniami. Przy takcie 0,2 s
+    /// opóźnienie o 0,05 s jest dla ręki na myszy niezauważalne.
+    private static let luzSekundy: TimeInterval = 0.05
+
+    func wlacz(rog: RogEkranu, gamemode: Bool, akcja: @escaping @MainActor () -> Void) {
         wylacz()
         uzbrojony = true
         zegar = Timer.scheduledTimer(withTimeInterval: Self.taktSekundy, repeats: true) { [weak self] _ in
@@ -31,6 +35,7 @@ final class AktywnyRog {
                 self?.takt(rog: rog, gamemode: gamemode, akcja: akcja)
             }
         }
+        zegar?.tolerance = Self.luzSekundy
     }
 
     func wylacz() {
@@ -38,7 +43,7 @@ final class AktywnyRog {
         zegar = nil
     }
 
-    private func takt(rog: RogEkranu, gamemode: Bool, akcja: @escaping () -> Void) {
+    private func takt(rog: RogEkranu, gamemode: Bool, akcja: @MainActor () -> Void) {
         let punkt = NSEvent.mouseLocation
         let ekran = (NSScreen.screens.first { $0.frame.contains(punkt) } ?? NSScreen.main)?.frame
         guard let ekran else { return }

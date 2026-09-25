@@ -82,6 +82,11 @@ xcodebuild -project AppGrid.xcodeproj -scheme AppGrid -configuration Release bui
 > **Signing / Podpis:** the project pins a local code-signing identity that will not be in
 > your keychain. Set **Signing & Capabilities → Signing Certificate** to *Sign to Run
 > Locally*, or point it at your own certificate.
+>
+> The Release build uses the Hardened Runtime and carries no `get-task-allow`, so no other
+> process can attach to AppGrid and borrow its Accessibility permission. To check a build:
+> `codesign -dv --entitlements - AppGrid.app` should show `flags=0x10000(runtime)` and no
+> entitlements.
 
 The app runs **without the App Sandbox** on purpose: it launches other applications and,
 when you turn that on, resizes Finder windows.

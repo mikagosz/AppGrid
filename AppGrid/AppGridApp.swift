@@ -298,7 +298,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             object: okno,
             queue: .main
         ) { [weak okno] _ in
-            okno?.orderOut(nil)
+            // `queue: .main` — obsługa i tak biegnie na głównym wątku; Swift 6 chce to jawnie.
+            MainActor.assumeIsolated { okno?.orderOut(nil) }
         }
 
         window = okno

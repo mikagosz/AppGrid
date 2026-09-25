@@ -36,6 +36,9 @@ final class OknaFindera: ObservableObject {
     /// Ignoruje własne zmiany rozmiaru, żeby moduł nie „uczył się" tego, co sam przed chwilą ustawił.
     private var wlasnaZmiana = false
     private var zegarNauki: Timer?
+    /// Jeden obserwator restartu Findera na włączenie modułu. Bez tego każde włączenie
+    /// dokładało kolejnego, a restart Findera podpinał moduł tyle razy, ile razy go włączono.
+    private var obserwatorRestartu: NSObjectProtocol?
 
     private static let kluczFolderow = "AppGrid.finder.rozmiaryFolderow"
     private nonisolated static let idFindera = "com.apple.finder"
@@ -53,6 +56,10 @@ final class OknaFindera: ObservableObject {
 
     func wylacz() {
         wlaczony = false
+        if let obserwatorRestartu {
+            NSWorkspace.shared.notificationCenter.removeObserver(obserwatorRestartu)
+        }
+        obserwatorRestartu = nil
         odepnijSie()
         opiszStan()
     }
@@ -82,7 +89,9 @@ final class OknaFindera: ObservableObject {
 
     /// Otwiera systemowe okno z prośbą o zgodę na Dostępność.
     func poprosOZgode() {
-        let opcje = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
+        // Wartość stałej `kAXTrustedCheckOptionPrompt`. Swift 6 nie pozwala sięgać po nią
+        // wprost — z C przychodzi jako zmienna globalna, czyli stan współdzielony.
+        let opcje = ["AXTrustedCheckOptionPrompt": true] as CFDictionary
         _ = AXIsProcessTrustedWithOptions(opcje)
     }
 
@@ -300,7 +309,8 @@ final class OknaFindera: ObservableObject {
 
     /// Finder bywa ubijany i wstaje z nowym PID-em — wtedy stary obserwator jest martwy.
     private func obserwujRestartFindera() {
-        NSWorkspace.shared.notificationCenter.addObserver(
+        guard obserwatorRestartu == nil else { return }
+        obserwatorRestartu = NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.didLaunchApplicationNotification,
             object: nil,
             queue: .main
