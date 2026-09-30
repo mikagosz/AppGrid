@@ -18,12 +18,6 @@ enum AppGridMain {
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
 
-    /// Uchwyt dla mostu diagnostycznego — most jest typem bez egzemplarza i nie ma
-    /// innej drogi do modelu. Tylko odczyt i tylko w DEBUG (`AppGridBridge`).
-    private(set) static weak var aktywny: AppDelegate?
-    static var aktywnyModel: AppGridModel? { aktywny?.model }
-    static var oknoWidoczne: Bool { aktywny?.window?.isVisible ?? false }
-
     fileprivate let model = AppGridModel()
     private let ustawienia = Ustawienia.shared
     private let skrot = SkrotGlobalny()
@@ -60,10 +54,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // Most diagnostyczny — w RELEASE `start` jest pusty, a cały kod mostu
-        // wycięty przez `#if DEBUG` po stronie `AppGridBridge`.
-        Self.aktywny = self
-        AppGridBridge.uruchom()
         wlaczKlawiature()
         zbudujMenu()
         model.reload()
