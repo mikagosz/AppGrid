@@ -1,4 +1,5 @@
 import AppKit
+import Combine
 import SwiftUI
 
 /// Okno ustawień programu.
@@ -6,6 +7,8 @@ struct UstawieniaView: View {
     @ObservedObject var ustawienia: Ustawienia
     @ObservedObject var skrot: SkrotGlobalny
     @ObservedObject var finder: OknaFindera
+    @ObservedObject private var aktualizacje = Updates.shared
+    @AppStorage(Setting.checkUpdates) private var sprawdzajAktualizacje = true
 
     var body: some View {
         Form {
@@ -260,7 +263,24 @@ struct UstawieniaView: View {
                     .foregroundStyle(.secondary)
                     .textSelection(.enabled)
             }
+            Toggle(String(localized: "Check for updates once a month"), isOn: $sprawdzajAktualizacje)
+                .onChange(of: sprawdzajAktualizacje) { _, wlaczone in aktualizacje.enabled = wlaczone }
+            HStack {
+                Text(ostatnieSprawdzenie).foregroundStyle(.secondary)
+                Spacer()
+                Button(String(localized: "Check Now")) {
+                    Task { await aktualizacje.check(manually: true) }
+                }
+            }
+            Text(String(localized: "The app asks fractal8.eu for the number of the newest version — it sends nothing else. A new version installs only when you click “Install”."))
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
+    }
+
+    private var ostatnieSprawdzenie: String {
+        guard let data = aktualizacje.lastCheck else { return String(localized: "Not checked yet") }
+        return String(localized: "Last: \(data.formatted(date: .abbreviated, time: .shortened))")
     }
 
     /// Czytane z paczki, nie ze stałej w kodzie.

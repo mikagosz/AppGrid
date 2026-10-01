@@ -50,6 +50,7 @@ w całości, a przy każdym otwarciu wraca do pełnego widoku.*
 - 🎛 **Looks.** Icon size, window width, background opacity, and a window that opens
   centred on the screen your pointer is on.
 - 🌍 **English and Polish**, switched with the system language.
+- ⬇️ **Updates from inside the app.** Once a month AppGrid offers a newer version with **Install and Restart**, **Skip This Version** or a manual download; nothing installs until you click. Switch and **Check Now** in Settings → About, **Check for Updates…** in the app menu.
 
 ## Requirements / Wymagania
 
@@ -72,13 +73,18 @@ w całości, a przy każdym otwarciu wraca do pełnego widoku.*
 | Global shortcut, hot corner | Accessibility | The shortcut and the corner stay silent; everything else works |
 | Finder window sizes | Automation (Finder) | Finder windows keep their own sizes |
 
-AppGrid makes **no network connections**. It reads the apps you have installed and writes
-its own settings — nothing else leaves your Mac.
+AppGrid reads the apps you have installed and writes its own settings. Its one network
+request is the update check: once a month it asks
+`downloads.fractal8.eu/AppGrid/api/error-update/version-check` for the newest version number
+and sends nothing else. The check runs on [ErrorUpdate](https://github.com/mikagosz/ErrorUpdate)
+1.0.1 with crash reporting off; the installer checks the package's SHA-256 and requires the
+new app to meet the running one's code signature requirement.
 
 ## Build & Run / Budowanie
 
 ```bash
-xcodebuild -project AppGrid.xcodeproj -scheme AppGrid -configuration Release build
+xcodebuild -project AppGrid.xcodeproj -scheme AppGrid -configuration Release \
+    -destination 'generic/platform=macOS' CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO build
 ```
 
 > **Signing / Podpis:** the project pins a local code-signing identity that will not be in

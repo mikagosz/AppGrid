@@ -63,6 +63,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         pokazOkno()
 
         zastosujUstawienia()
+        // Aktualizacje z wnętrza programu — raz w miesiącu, jak w pozostałych programach.
+        Updates.shared.start()
         // Zmiany z okna ustawień wchodzą od razu, bez przycisku „zastosuj".
         subskrypcja = ustawienia.objectWillChange.sink { [weak self] _ in
             DispatchQueue.main.async { self?.zastosujUstawienia() }
@@ -367,6 +369,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     // MARK: - Menu
 
     /// Bez menu program nie ma nawet Cmd+Q ani Cmd+W.
+    @objc private func sprawdzAktualizacje() {
+        Task { await Updates.shared.check(manually: true) }
+    }
+
     private func zbudujMenu() {
         let glowne = NSMenu()
 
@@ -376,6 +382,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             withTitle: String(localized: "Settings…"),
             action: #selector(pokazUstawienia),
             keyEquivalent: ","
+        ).target = self
+        menuApp.addItem(
+            withTitle: String(localized: "Check for Updates…"),
+            action: #selector(sprawdzAktualizacje),
+            keyEquivalent: ""
         ).target = self
         menuApp.addItem(.separator())
         menuApp.addItem(
