@@ -19,6 +19,7 @@ enum AppGridMain {
 final class AppDelegate: NSObject, NSApplicationDelegate {
 
     fileprivate let model = AppGridModel()
+    private lazy var obserwatorProgramow = ObserwatorProgramow { [weak self] in self?.model.reload() }
     private let ustawienia = Ustawienia.shared
     private let skrot = SkrotGlobalny()
     private let aktywnyRog = AktywnyRog()
@@ -57,6 +58,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         wlaczKlawiature()
         zbudujMenu()
         model.reload()
+        // Nowy program pojawia się na liście bez restartu (0.2.41).
+        obserwatorProgramow.start(katalogi: AppScanner.searchRoots.map(\.url))
         pokazOkno()
 
         zastosujUstawienia()

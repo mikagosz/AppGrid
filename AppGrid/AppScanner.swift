@@ -33,7 +33,7 @@ enum AppScanner {
     static let inne = String(localized: "Other")
 
     /// Katalogi przeszukiwane wraz z informacją, czy to obszar systemu.
-    private static var searchRoots: [(url: URL, isSystem: Bool)] {
+    static var searchRoots: [(url: URL, isSystem: Bool)] {
         var roots: [(URL, Bool)] = [
             (URL(fileURLWithPath: "/Applications"), false),
             (URL(fileURLWithPath: "/System/Applications"), true),
