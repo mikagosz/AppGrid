@@ -8,10 +8,12 @@ struct UstawieniaView: View {
     @ObservedObject var skrot: SkrotGlobalny
     @ObservedObject var finder: OknaFindera
     @ObservedObject private var aktualizacje = Updates.shared
+    @ObservedObject private var start = StartPrzyLogowaniu.shared
     @AppStorage(Setting.checkUpdates) private var sprawdzajAktualizacje = true
 
     var body: some View {
         Form {
+            sekcjaStart
             sekcjaWywolanie
             sekcjaWyglad
             sekcjaGoraListy
@@ -22,7 +24,43 @@ struct UstawieniaView: View {
         }
         .formStyle(.grouped)
         .frame(minWidth: 520, minHeight: 420)
-        .onAppear { finder.odswiezZgode() }
+        .onAppear {
+            finder.odswiezZgode()
+            start.odswiez()
+        }
+    }
+
+    // MARK: - Start
+
+    private var sekcjaStart: some View {
+        Section(String(localized: "Startup")) {
+            Toggle(
+                String(localized: "Open at login"),
+                isOn: Binding(get: { start.wlaczone }, set: { start.ustaw($0) })
+            )
+
+            if start.czekaNaZgode {
+                HStack {
+                    Label(
+                        String(localized: "Waiting for approval in System Settings"),
+                        systemImage: "exclamationmark.triangle"
+                    )
+                    .foregroundStyle(.orange)
+                    Spacer()
+                    Button(String(localized: "Open…")) { start.otworzUstawieniaSystemowe() }
+                }
+            }
+
+            if let blad = start.blad {
+                Label(blad, systemImage: "exclamationmark.triangle")
+                    .foregroundStyle(.orange)
+                    .font(.callout)
+            }
+
+            Text(String(localized: "AppGrid starts by itself when you log in, so the shortcut and the screen corner work right away."))
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
     }
 
     // MARK: - Wywołanie

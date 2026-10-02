@@ -154,6 +154,23 @@
         }
       }
     },
+    "AppGrid starts by itself when you log in, so the shortcut and the screen corner work right away.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AppGrid starts by itself when you log in, so the shortcut and the screen corner work right away."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AppGrid uruchamia się sam po zalogowaniu, więc skrót i róg ekranu działają od razu."
+          }
+        }
+      }
+    },
     "AppGrid — Update": {
       "extractionState": "manual",
       "localizations": {
@@ -1361,6 +1378,40 @@
         }
       }
     },
+    "Open at login": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open at login"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uruchamiaj przy logowaniu"
+          }
+        }
+      }
+    },
+    "Open…": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open…"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otwórz…"
+          }
+        }
+      }
+    },
     "Other": {
       "extractionState": "manual",
       "localizations": {
@@ -1871,6 +1922,23 @@
         }
       }
     },
+    "Startup": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Startup"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start"
+          }
+        }
+      }
+    },
     "Stops a stray flick of the mouse into the corner from hiding a game or a film.": {
       "extractionState": "manual",
       "localizations": {
@@ -2309,6 +2377,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Wideo"
+          }
+        }
+      }
+    },
+    "Waiting for approval in System Settings": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting for approval in System Settings"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Czeka na zgodę w Ustawieniach systemowych"
           }
         }
       }
