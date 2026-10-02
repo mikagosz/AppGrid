@@ -697,6 +697,27 @@ checkEqual("zwezanie NIGDY nie daje wiecej kolumn niz szersze okno",
 check("kontrola dodatnia — szersze okno naprawde daje wiecej kolumn",
       UkladSiatki.kolumny(szerokosc: 1380, szerokoscKafelka: 78, odstep: 4) > 8)
 
+// ─────────────────────────────────────────────────────────────────────
+// CICHY START PRZY LOGOWANIU (AG-34)
+// ─────────────────────────────────────────────────────────────────────
+let zalogowano = Date(timeIntervalSince1970: 1_000_000)
+check("start 20 s po zalogowaniu = start z logowania",
+      StartPrzyLogowaniu.startTuzPoZalogowaniu(start: zalogowano.addingTimeInterval(20), zalogowano: zalogowano))
+check("start 179 s po zalogowaniu = jeszcze z logowania",
+      StartPrzyLogowaniu.startTuzPoZalogowaniu(start: zalogowano.addingTimeInterval(179), zalogowano: zalogowano))
+check("start 10 min po zalogowaniu = zwykly start, okno ma wyjsc",
+      !StartPrzyLogowaniu.startTuzPoZalogowaniu(start: zalogowano.addingTimeInterval(600), zalogowano: zalogowano))
+check("start PRZED zalogowaniem (inny wpis utmpx) = zwykly start",
+      !StartPrzyLogowaniu.startTuzPoZalogowaniu(start: zalogowano.addingTimeInterval(-5), zalogowano: zalogowano))
+check("brak wpisu o zalogowaniu = zwykly start",
+      !StartPrzyLogowaniu.startTuzPoZalogowaniu(start: zalogowano, zalogowano: nil))
+check("reopen 3 s po starcie z logowania = od systemu, bez okna",
+      StartPrzyLogowaniu.reopenOdSystemu(startZLogowania: true, odStartu: 3))
+check("klik w Dock minute po starcie z logowania = okno",
+      !StartPrzyLogowaniu.reopenOdSystemu(startZLogowania: true, odStartu: 60))
+check("reopen po zwyklym starcie = zawsze okno",
+      !StartPrzyLogowaniu.reopenOdSystemu(startZLogowania: false, odStartu: 1))
+
 print("")
 print("ZIELONE: \(passed), CZERWONE: \(failed)")
 exit(failed == 0 ? 0 : 1)

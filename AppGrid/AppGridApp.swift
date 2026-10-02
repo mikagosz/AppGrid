@@ -54,6 +54,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         var finderWlaczony: Bool
     }
 
+    private let chwilaStartu = Date()
+    private var startZLogowania = false
+
+    func applicationWillFinishLaunching(_ notification: Notification) {
+        startZLogowania = StartPrzyLogowaniu.uruchomionoPrzyLogowaniu(start: chwilaStartu)
+    }
+
     func applicationDidFinishLaunching(_ notification: Notification) {
         wlaczKlawiature()
         zbudujMenu()
@@ -61,7 +68,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Nowy program pojawia się na liście bez restartu (0.2.41).
         obserwatorProgramow.start(katalogi: AppScanner.searchRoots.map(\.url))
         // Start z logowania: okno czeka na skrót, róg albo klik w Dock (2026-10-03).
-        if !StartPrzyLogowaniu.uruchomionoPrzyLogowaniu() {
+        if !startZLogowania {
             pokazOkno()
         }
 
@@ -76,6 +83,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     /// Klik w ikonę w Docku, gdy program już działa.
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        // „Reopen" tuż po starcie z logowania przysyła system, nie [U].
+        if StartPrzyLogowaniu.reopenOdSystemu(startZLogowania: startZLogowania,
+                                              odStartu: Date().timeIntervalSince(chwilaStartu)) {
+            return false
+        }
         pokazOkno()
         return true
     }

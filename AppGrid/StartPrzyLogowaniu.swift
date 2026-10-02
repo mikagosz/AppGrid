@@ -54,24 +54,40 @@ final class StartPrzyLogowaniu: ObservableObject {
     /// Czy ten start to start z logowania — wtedy okno ma się **nie** pokazać.
     ///
     /// Zamówienie [U] 2026-10-03: po zalogowaniu AppGrid ma czekać w tle na skrót, róg
-    /// albo klik w Dock, a nie wyskakiwać na ekran. Dwie drogi, bo żadna osobno nie jest
-    /// pewna:
+    /// albo klik w Dock, a nie wyskakiwać na ekran. Wzór wzięty z ColorMyFolder 0.1.17,
+    /// gdzie zmierzono oba haczyki niżej:
     ///
-    /// 1. Zdarzenie `oapp` od systemu niesie znacznik `keyAELaunchedAsLogInItem` — tak
-    ///    rzeczy otwierane przy logowaniu zgłaszały się zawsze. Czytane w
-    ///    `applicationDidFinishLaunching`, bo tylko wtedy `currentAppleEvent` to `oapp`.
-    /// 2. Zapas na wypadek, gdyby znacznika nie było: wpis przy logowaniu jest włączony,
-    ///    a od zalogowania na konsoli (`utmpx`) minęło mniej niż dwie minuty. Ręczne
-    ///    odpalenie w tym oknie czasowym też da cichy start — wtedy wystarczy klik w Dock.
-    static func uruchomionoPrzyLogowaniu() -> Bool {
-        if let zdarzenie = NSAppleEventManager.shared().currentAppleEvent,
-           zdarzenie.eventID == kAEOpenApplication,
-           zdarzenie.paramDescriptor(forKeyword: keyAEPropData)?.enumCodeValue == keyAELaunchedAsLogInItem {
+    /// 1. Zdarzenie `oapp` od systemu niesie znacznik `keyAELaunchedAsLogInItem` — ale
+    ///    macOS 27 otwiera rzeczy przy logowaniu **bez** tego znacznika, czasem w ogóle
+    ///    bez zdarzenia. Czytane w `applicationWillFinishLaunching`, bo tam
+    ///    `currentAppleEvent` to jeszcze `oapp`.
+    /// 2. Dlatego zapas: start w ciągu trzech minut od zalogowania na konsoli (`utmpx`)
+    ///    też liczy się jako start z logowania. Ręczne odpalenie w tym oknie czasowym da
+    ///    cichy start — wtedy wystarczy klik w Dock.
+    static func uruchomionoPrzyLogowaniu(start: Date) -> Bool {
+        let zdarzenie = NSAppleEventManager.shared().currentAppleEvent
+        if zdarzenie?.eventID == AEEventID(kAEOpenApplication),
+           zdarzenie?.paramDescriptor(forKeyword: AEKeyword(keyAEPropData))?.enumCodeValue == OSType(keyAELaunchedAsLogInItem) {
             return true
         }
-        guard SMAppService.mainApp.status == .enabled,
-              let zalogowano = czasLogowaniaNaKonsoli() else { return false }
-        return Date().timeIntervalSince(zalogowano) < 120
+        return startTuzPoZalogowaniu(start: start, zalogowano: czasLogowaniaNaKonsoli())
+    }
+
+    nonisolated static let oknoPoZalogowaniu: TimeInterval = 180
+
+    nonisolated static func startTuzPoZalogowaniu(start: Date, zalogowano: Date?) -> Bool {
+        guard let zalogowano else { return false }
+        let minelo = start.timeIntervalSince(zalogowano)
+        return minelo >= 0 && minelo < oknoPoZalogowaniu
+    }
+
+    /// Po starcie z logowania system potrafi chwilę później sam przysłać „reopen" —
+    /// jak klik w Dock. Przez pierwsze pół minuty go ignorujemy; klik [U] po tym czasie
+    /// otwiera okno normalnie. Zmierzone w ColorMyFolder 0.1.17.
+    nonisolated static let ciszaPoStarcie: TimeInterval = 30
+
+    nonisolated static func reopenOdSystemu(startZLogowania: Bool, odStartu: TimeInterval) -> Bool {
+        startZLogowania && odStartu < ciszaPoStarcie
     }
 
     /// Chwila zalogowania bieżącego użytkownika na konsoli — najświeższy wpis `utmpx`.
