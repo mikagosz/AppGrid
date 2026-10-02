@@ -43,6 +43,8 @@ w całości, a przy każdym otwarciu wraca do pełnego widoku.*
 - 🙈 **Hide what you never open.** Hidden apps come back the moment you search for them —
   hiding tidies the view, it does not take the app away.
 - 🕒 **Recently installed and recently used**, as two sections or one merged row.
+- 🚀 **Open at login.** One switch in Settings; after login AppGrid waits quietly in the
+  background, with no window, until you call it.
 - ⌘ **Global shortcut and a hot corner.** Both optional; the corner has a gamemode switch
   so it stays out of the way while you play.
 - 🪟 **Finder window sizes.** Optionally give every Finder window the same size — one for
