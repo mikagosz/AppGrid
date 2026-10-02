@@ -154,19 +154,19 @@
         }
       }
     },
-    "AppGrid starts by itself when you log in, so the shortcut and the screen corner work right away.": {
+    "AppGrid starts quietly in the background when you log in — no window. The shortcut, the screen corner and the Dock icon work right away.": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "AppGrid starts by itself when you log in, so the shortcut and the screen corner work right away."
+            "value": "AppGrid starts quietly in the background when you log in — no window. The shortcut, the screen corner and the Dock icon work right away."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "AppGrid uruchamia się sam po zalogowaniu, więc skrót i róg ekranu działają od razu."
+            "value": "AppGrid po zalogowaniu startuje po cichu w tle, bez okna. Skrót, róg ekranu i ikona w Docku działają od razu."
           }
         }
       }

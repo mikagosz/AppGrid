@@ -60,7 +60,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         model.reload()
         // Nowy program pojawia się na liście bez restartu (0.2.41).
         obserwatorProgramow.start(katalogi: AppScanner.searchRoots.map(\.url))
-        pokazOkno()
+        // Start z logowania: okno czeka na skrót, róg albo klik w Dock (2026-10-03).
+        if !StartPrzyLogowaniu.uruchomionoPrzyLogowaniu() {
+            pokazOkno()
+        }
 
         zastosujUstawienia()
         // Aktualizacje z wnętrza programu — raz w miesiącu, jak w pozostałych programach.

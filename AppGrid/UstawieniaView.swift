@@ -57,7 +57,7 @@ struct UstawieniaView: View {
                     .font(.callout)
             }
 
-            Text(String(localized: "AppGrid starts by itself when you log in, so the shortcut and the screen corner work right away."))
+            Text(String(localized: "AppGrid starts quietly in the background when you log in — no window. The shortcut, the screen corner and the Dock icon work right away."))
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
