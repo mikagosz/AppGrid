@@ -4,7 +4,7 @@ import Foundation
 ///
 /// Do 0.2.40 lista powstawała raz, przy starcie (`AppGridModel.reload()` w `applicationDidFinishLaunching`),
 /// więc program zainstalowany w trakcie pojawiał się dopiero po restarcie albo „Odśwież” w menu
-/// (zgłoszenie [U] 2026-10-01). FSEvents patrzy rekurencyjnie, czyli łapie też podkatalogi
+/// (zgłoszenie użytkownika 2026-10-01). FSEvents patrzy rekurencyjnie, czyli łapie też podkatalogi
 /// (`Utilities`, foldery producentów) — te same, które skanuje `AppScanner`.
 ///
 /// Instalacja to setki zapisów do wnętrza paczki — zdarzenia zbierają się przez `opoznienie`

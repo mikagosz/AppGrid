@@ -98,7 +98,7 @@ final class SkrotGlobalny: ObservableObject {
     }
 
     /// Nazwa klawisza — najpierw klawisze bez znaku, potem znak z **bieżącego układu
-    /// klawiatury**, żeby opis zgadzał się z tym, co [U] ma wymalowane na klawiszu.
+    /// klawiatury**, żeby opis zgadzał się z tym, co użytkownik ma wymalowane na klawiszu.
     nonisolated static func nazwaKlawisza(_ kod: Int) -> String {
         if let stala = klawiszeBezZnaku[kod] { return stala }
         if let znak = znakZUkladu(kod) { return znak.uppercased() }

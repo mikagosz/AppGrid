@@ -4,7 +4,7 @@ import AppKit
 //
 // Nie jest czescia programu — Harness lezy poza grupa synchronizowana, wiec nie
 // trafia do targetu. Sluzy do jednego: zeby gniazdo AppIcon nie bylo puste, dopoki
-// [U] nie wstawi wlasnej grafiki. Podmiana wlasnej ikony NIE wymaga tego skryptu —
+// Użytkownik nie wstawi wlasnej grafiki. Podmiana wlasnej ikony NIE wymaga tego skryptu —
 // wystarczy podmienic pliki PNG w AppGrid/Assets.xcassets/AppIcon.appiconset/.
 //
 // Uruchomienie:

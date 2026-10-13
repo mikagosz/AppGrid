@@ -290,7 +290,7 @@ struct UstawieniaView: View {
 
     // MARK: - O programie
 
-    /// Numer wersji w ustawieniach — zamówienie [U] 2026-09-05 (AG-27).
+    /// Numer wersji w ustawieniach — zamówienie użytkownika 2026-09-05 (AG-27).
     private var sekcjaOProgramie: some View {
         Section(String(localized: "About")) {
             HStack {
@@ -327,7 +327,7 @@ struct UstawieniaView: View {
     /// i pierwsze przeoczenie dałoby okno meldujące inną wersję niż paczka — dokładnie
     /// ta pułapka, która kosztowała całe wydanie [[CWMac]] (patrz `Tagi-i-wersje`).
     ///
-    /// Numeru buildu tu **nie ma** — decyzja [U] 2026-09-05 (AG-28): *„ma być samo
+    /// Numeru buildu tu **nie ma** — decyzja użytkownika 2026-09-05 (AG-28): *„ma być samo
     /// v.0.2.28"*. `CURRENT_PROJECT_VERSION` dalej rośnie, tylko nie wychodzi na wierzch.
     private static var wersjaProgramu: String {
         let wersja = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
@@ -389,7 +389,7 @@ struct UstawieniaView: View {
             }
             // W trybie „każdy folder pamięta swój własny" rozmiar globalny nie jest
             // do niczego używany — wygaszamy go, żeby nie wyglądał na obowiązujący
-            // (zgłoszenie [U] 2026-09-12).
+            // (zgłoszenie użytkownika 2026-09-12).
             .disabled(!ustawienia.finderWlaczony || ustawienia.finderTryb == .osobnoPerFolder)
 
             if ustawienia.finderTryb == .osobnoPerFolder {

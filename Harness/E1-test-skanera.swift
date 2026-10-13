@@ -1,7 +1,7 @@
 import AppKit
 
 // Harness Etapu 1 — skaner aplikacji.
-// Sedno skargi [U]: systemowe okno nie pokazuje wszystkiego. Ten sprawdzian pilnuje,
+// Sedno skargi użytkownika: systemowe okno nie pokazuje wszystkiego. Ten sprawdzian pilnuje,
 // zeby nasza lista byla pelna, bez duplikatow i zeby Finder w niej byl.
 
 var passed = 0

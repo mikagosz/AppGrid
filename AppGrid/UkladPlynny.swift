@@ -19,7 +19,7 @@ extension View {
 /// z jednego kontenera i **wstawieniem** do drugiego. Takiego ruchu nie da się animować —
 /// domyślne przejście rysowało tę samą ikonę dwa razy naraz, jedną na drugiej.
 /// Tutaj belki i ikony są rodzeństwem, więc zmiana kolejności jest zwykłym przesunięciem
-/// i animuje się ślizgiem (decyzja [U] 2026-08-22: „chcę ślizg").
+/// i animuje się ślizgiem (decyzja użytkownika 2026-08-22: „chcę ślizg").
 ///
 /// Sama geometria mieszka w `UkladSiatki.ramki` — poza SwiftUI, żeby dała się sprawdzić
 /// headless i żeby **to samo** liczenie obsługiwało trafianie kursorem przy przeciąganiu.

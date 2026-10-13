@@ -37,7 +37,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// Nazwa, pod którą AppKit sam zapisuje ramkę okna głównego.
     private static let autosaveGlowne = "AppGridMainWindow"
 
-    /// Najniższa wysokość okna. Szerokość granicy nie ma — tę ustawia [U] w ustawieniach.
+    /// Najniższa wysokość okna. Szerokość granicy nie ma — tę ustawia użytkownik w ustawieniach.
     private static let minimalnaWysokosc: CGFloat = 320
 
     /// Ostatnio wgrany stan wywołania. Bez tego każde drgnięcie suwaka w ustawieniach
@@ -83,7 +83,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     /// Klik w ikonę w Docku, gdy program już działa.
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
-        // „Reopen" tuż po starcie z logowania przysyła system, nie [U].
+        // „Reopen" tuż po starcie z logowania przysyła system, nie użytkownik.
         if StartPrzyLogowaniu.reopenOdSystemu(startZLogowania: startZLogowania,
                                               odStartu: Date().timeIntervalSince(chwilaStartu)) {
             return false
@@ -174,7 +174,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             case Klawisz.dol:   self.model.przesunWybor(.dol);   return nil
             case Klawisz.enter, Klawisz.enterNumeryczny:
                 // Bez wskazanej ikony Enter zostaje polu tekstowemu — inaczej odpalałby
-                // coś, czego [U] nie widzi jako zaznaczone.
+                // coś, czego użytkownik nie widzi jako zaznaczone.
                 guard self.model.wybrany != nil else { return zdarzenie }
                 self.model.uruchomWybrany()
                 return nil
@@ -224,7 +224,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    /// Okno przykotwiczone centralnie — zgłoszenie [U] 2026-09-05 (AG-25).
+    /// Okno przykotwiczone centralnie — zgłoszenie użytkownika 2026-09-05 (AG-25).
     ///
     /// Liczone przy **każdym** pokazaniu, nie raz przy budowie: okno wolno przesunąć
     /// za tło, a przy następnym wywołaniu ma i tak wyjść na środku. Ramki po tym nie
@@ -232,7 +232,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     ///
     /// `NSWindow.center()` tutaj nie wystarcza z dwóch powodów — oba z dokumentacji
     /// AppKitu, nie z pomiaru: bierze ekran główny, a nie ten, na którym stoi kursor,
-    /// i sadza okno **powyżej** środka. [U] prosił o środek.
+    /// i sadza okno **powyżej** środka. Użytkownik prosił o środek.
     private func wysrodkuj(_ okno: NSWindow) {
         let mysz = NSEvent.mouseLocation
         let ekran = NSScreen.screens.first { $0.frame.contains(mysz) } ?? okno.screen ?? NSScreen.main
@@ -263,7 +263,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Przezroczystość WYMUSZONA własną warstwą.
         //
         // Natywne rozmycie (NSVisualEffectView) respektuje przełącznik dostępności
-        // „Zmniejsz przezroczystość", który [U] ma włączony — i wtedy tło wychodzi matowe.
+        // „Zmniejsz przezroczystość", który użytkownik ma włączony — i wtedy tło wychodzi matowe.
         // Systemowe okno „Aplikacje" to ustawienie ignoruje, więc my też: rysujemy własne
         // półprzezroczyste tło, niezależne od stanu tego przełącznika.
         let tlo = TloOkna()
@@ -273,7 +273,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         let zawartosc = NSHostingView(rootView: AppGridView(model: model))
         // Bez tego SwiftUI dokłada u góry margines na pasek tytułu — a to właśnie ten pusty
-        // pas [U] kazał skasować. Pasek już nie istnieje, ale margines po nim by został.
+        // pas użytkownik kazał skasować. Pasek już nie istnieje, ale margines po nim by został.
         zawartosc.safeAreaRegions = []
         zawartosc.translatesAutoresizingMaskIntoConstraints = false
         tlo.addSubview(zawartosc)
@@ -319,7 +319,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return okno
     }
 
-    /// Zablokowana szerokość okna — decyzja [U] 2026-08-23 (AG-22).
+    /// Zablokowana szerokość okna — decyzja użytkownika 2026-08-23 (AG-22).
     ///
     /// Równe `contentMinSize` i `contentMaxSize` w poziomie odbierają AppKitowi
     /// możliwość ciągnięcia za pionową krawędź; wysokość zostaje wolna. To jest

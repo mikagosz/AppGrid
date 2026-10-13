@@ -7,25 +7,25 @@ import Security
 /// Dwa tryby, bo to dwie różne rzeczy (patrz [`TrybOkienFindera`]):
 ///
 /// - **jeden dla wszystkich** — każde nowo otwarte okno dostaje ten sam rozmiar,
-///   niezależnie od tego, który folder pokazuje. To była decyzja [U] 2026-08-14.
+///   niezależnie od tego, który folder pokazuje. To była decyzja użytkownika 2026-08-14.
 /// - **osobno per folder** — rozmiar zapamiętywany pod ścieżką folderu, a folder bez
 ///   zapamiętanego wpisu **zostaje nietknięty**. Rozmiar globalny w tym trybie nie
-///   obowiązuje i dlatego jego pola są w ustawieniach wygaszone (decyzja [U] 2026-09-12).
+///   obowiązuje i dlatego jego pola są w ustawieniach wygaszone (decyzja użytkownika 2026-09-12).
 ///
 /// Folder okna rozpoznajemy z **paska okruszków** (`AXURL` ostatniego elementu), bo
 /// `AXDocument` okien Findera nie obsługuje — szczegóły i pomiar przy [`folderZListyUrl`].
 ///
 /// Uwaga do drugiego trybu: Finder **sam** trzyma bounds okna per folder w `.DS_Store`,
-/// i to jest właśnie źródło bałaganu, na który [U] narzekał. Tryb „osobno" nie naprawia
-/// tamtego mechanizmu, tylko dokłada nad nim własną warstwę tam, gdzie [U] sam ustawił
-/// rozmiar. Folder, którego [U] nie ustawiał, zostaje w rękach Findera.
+/// i to jest właśnie źródło bałaganu, na który użytkownik narzekał. Tryb „osobno" nie naprawia
+/// tamtego mechanizmu, tylko dokłada nad nim własną warstwę tam, gdzie użytkownik sam ustawił
+/// rozmiar. Folder, którego użytkownik nie ustawiał, zostaje w rękach Findera.
 ///
 /// Cały moduł wymaga zgody na **Dostępność**. Bez niej nie robi nic i mówi o tym wprost.
 @MainActor
 final class OknaFindera: ObservableObject {
 
     @Published private(set) var zgodaJest = AXIsProcessTrusted()
-    /// Krótka diagnostyka dla [U] — ile okien moduł widzi i ile z nich rozpoznaje po folderze.
+    /// Krótka diagnostyka dla użytkownika — ile okien moduł widzi i ile z nich rozpoznaje po folderze.
     @Published private(set) var opisStanu = ""
 
     private let ustawienia = Ustawienia.shared
@@ -101,7 +101,7 @@ final class OknaFindera: ObservableObject {
     ///
     /// `nil` znaczy **nie dotykaj tego okna** — zostaje takie, jak otworzył je Finder.
     ///
-    /// 🔴 Decyzja [U] 2026-09-12: *„jeżeli jest zaznaczone, aby pamiętał wymiar okna,
+    /// 🔴 Decyzja użytkownika 2026-09-12: *„jeżeli jest zaznaczone, aby pamiętał wymiar okna,
     /// to rozmiar w programie powinien być wygaszony"*. W trybie „każdy folder pamięta
     /// swój własny" rozmiar globalny **nie obowiązuje w ogóle** — folder bez wpisu
     /// nie dostaje nic. Wcześniej spadał do globalnego i to właśnie wyglądało jak
@@ -179,7 +179,7 @@ final class OknaFindera: ObservableObject {
 
     var ileZapamietanychFolderow: Int { zapamietaneFoldery.count }
 
-    /// Bierze rozmiar z okna Findera, które jest teraz na wierzchu — żeby [U] nie musiał
+    /// Bierze rozmiar z okna Findera, które jest teraz na wierzchu — żeby użytkownik nie musiał
     /// wpisywać liczb z palca.
     @discardableResult
     func wezRozmiarZBiezacegoOkna() -> Bool {
@@ -231,7 +231,7 @@ final class OknaFindera: ObservableObject {
         AXUIElementSetAttributeValue(okno, kAXSizeAttribute as CFString, wartosc)
     }
 
-    /// Zapamiętuje rozmiar po tym, jak [U] ręcznie zmienił okno.
+    /// Zapamiętuje rozmiar po tym, jak użytkownik ręcznie zmienił okno.
     private func zapamietaj(z okno: AXUIElement) {
         guard ustawienia.finderUczySie, !wlasnaZmiana, let rozmiar = rozmiar(okno) else { return }
         guard rozmiar.width > 200, rozmiar.height > 150 else { return }   // okno w trakcie animacji

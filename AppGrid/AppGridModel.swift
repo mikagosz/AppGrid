@@ -74,13 +74,13 @@ final class AppGridModel: ObservableObject {
     /// W której sekcji stoi program.
     ///
     /// Skaner tylko **proponuje** (katalog `Utilities` → narzędzie), a ostatnie słowo ma
-    /// [U]: ikonę przeciągniętą do drugiej sekcji trzyma tam przypisanie w ustawieniach.
-    /// Decyzja [U] 2026-08-23 (AG-23).
+    /// Użytkownik: ikonę przeciągniętą do drugiej sekcji trzyma tam przypisanie w ustawieniach.
+    /// Decyzja użytkownika 2026-08-23 (AG-23).
     func sekcja(_ app: InstalledApp) -> Sekcja {
         ustawienia.sekcja(app.id, domyslna: domyslnaSekcja(app))
     }
 
-    /// Gdzie posłałby program sam skaner, bez ręki [U].
+    /// Gdzie posłałby program sam skaner, bez ręki użytkownika.
     private func domyslnaSekcja(_ app: InstalledApp) -> Sekcja {
         app.isUtility ? .narzedzia : .glowne
     }
@@ -382,7 +382,7 @@ final class AppGridModel: ObservableObject {
     ///
     /// 🔴 Bez tego strzałka w dół była skokiem o stałą liczbę kolumn i myliła się
     /// wszędzie tam, gdzie rząd jest krótszy: belka łamie rząd w pół, a sekcja
-    /// „Narzędzia systemowe" zaczyna własny. Zgłoszenie [U]: „w dół skacze dziwnie
+    /// „Narzędzia systemowe" zaczyna własny. Zgłoszenie użytkownika: „w dół skacze dziwnie
     /// między sekcjami zamiast lecieć po prostu w dół".
     @Published var mapaNawigacji: [PolozenieIkony] = []
 
@@ -397,7 +397,7 @@ final class AppGridModel: ObservableObject {
     /// potem narzędzia systemowe. Belki się pomija — na separatorze nie da się stanąć.
     ///
     /// 🔴 Kolejność bierzemy z `pozycje`, a nie z `visibleApps`, bo to `pozycje` widzi
-    /// układ poustawiany ręką [U]. Liczone z `visibleApps` strzałki chodziłyby alfabetem,
+    /// układ poustawiany ręką użytkownika. Liczone z `visibleApps` strzałki chodziłyby alfabetem,
     /// czyli nie tak, jak ikony leżą na ekranie.
     var kolejnoscNawigacji: [InstalledApp] {
         (pozycje(.glowne, podglad: nil) + pozycje(.narzedzia, podglad: nil)).compactMap {

@@ -4,7 +4,7 @@ import SwiftUI
 struct AppGridView: View {
     @ObservedObject var model: AppGridModel
     @FocusState private var szukajkaAktywna: Bool
-    /// Co [U] właśnie ciągnie i nad czym trzyma. Z tych dwóch liczy się podgląd układu,
+    /// Co użytkownik właśnie ciągnie i nad czym trzyma. Z tych dwóch liczy się podgląd układu,
     /// żeby ikony rozstępowały się **w trakcie** ciągnięcia, a nie dopiero po upuszczeniu.
     ///
     /// Od 2026-10-13 to **grupa**: belka razem ze swoją sekcją albo zaznaczone ikony.
@@ -37,7 +37,7 @@ struct AppGridView: View {
         }
         .frame(minWidth: 520, minHeight: 320)
         .onAppear { szukajkaAktywna = true }
-        // Menu układu wisi na CAŁYM oknie, nie na kafelkach — decyzja [U] 2026-08-22.
+        // Menu układu wisi na CAŁYM oknie, nie na kafelkach — decyzja użytkownika 2026-08-22.
         // Kafelek ma własne menu, a menu wewnętrzne wygrywa z zewnętrznym, więc prawy
         // przycisk na ikonie dalej daje „Otwórz / Pokaż w Finderze / Ukryj".
         .contextMenu { menuUkladu }
@@ -131,7 +131,7 @@ struct AppGridView: View {
 
     // MARK: - Sekcje „ostatnie" (AG-1 + scalony rząd)
 
-    /// Sekcje pokazują się tylko wtedy, gdy [U] je włączył i gdy lista nie jest zawężona
+    /// Sekcje pokazują się tylko wtedy, gdy użytkownik je włączył i gdy lista nie jest zawężona
     /// szukajką ani kategorią — o to drugie dba `listaPelna` w modelu.
     @ViewBuilder
     private var sekcjeOstatnich: some View {
@@ -198,11 +198,11 @@ struct AppGridView: View {
         .padding(.top, 4)
     }
 
-    /// Belka wstawiona przez [U]. Bez nazwy jest samą kreską.
+    /// Belka wstawiona przez użytkownika. Bez nazwy jest samą kreską.
     ///
     /// W edycji cały ten rząd — uchwyt, wolne miejsce i kreska — jest powierzchnią
     /// do chwycenia. Wcześniej chwytała tylko sama ikonka uchwytu i kreska wysokości
-    /// **1 pt**, więc trafienie w nią graniczyło ze snajperką (zgłoszenie [U] 2026-08-22).
+    /// **1 pt**, więc trafienie w nią graniczyło ze snajperką (zgłoszenie użytkownika 2026-08-22).
     @ViewBuilder
     private func belkaSeparatora(_ belka: Separator) -> some View {
         HStack(spacing: 8) {
@@ -278,7 +278,7 @@ struct AppGridView: View {
     }
 
     /// Zwykła siatka bez własnej kolejności i bez belek — sekcje „ostatnie".
-    /// Tam kolejność wynika z dat, nie z układu [U], więc nie ma czego przestawiać.
+    /// Tam kolejność wynika z dat, nie z układu użytkownika, więc nie ma czego przestawiać.
     /// Narzędzia systemowe od AG-23 tędy **nie** idą: mają własną kolejność.
     private func grupa(_ lista: [InstalledApp]) -> some View {
         LazyVGrid(columns: kolumny, alignment: .leading, spacing: odstepPionowy) {
@@ -288,7 +288,7 @@ struct AppGridView: View {
         }
     }
 
-    /// Sekcja z własną kolejnością [U]: belki, przeciąganie i wymiana ikon z sąsiadem.
+    /// Sekcja z własną kolejnością użytkownika: belki, przeciąganie i wymiana ikon z sąsiadem.
     ///
     /// Wszystko siedzi w **jednym** `UkladPlynny`, bo tylko rodzeństwo w jednym kontenerze
     /// SwiftUI potrafi przesunąć. Rozbicie na kawałki z osobnymi siatkami dawało zamiast
@@ -337,7 +337,7 @@ struct AppGridView: View {
             porzuc: { porzucCel(sekcja) },
             upusc: { zapiszPrzeniesienie() }
         ))
-        // Ślizg, o który prosił [U]: ikony przesuwają się w trakcie ciągnięcia.
+        // Ślizg, o który prosił użytkownik: ikony przesuwają się w trakcie ciągnięcia.
         .animation(.snappy(duration: 0.22), value: indeksPodgladu)
         .animation(.snappy(duration: 0.22), value: celPrzeciagania)
     }
@@ -401,7 +401,7 @@ struct AppGridView: View {
     /// 🔴 Liczone **tym samym** `UkladSiatki.ramki`, który układa siatkę, a nie
     /// osobnym wzorem „indeks plus liczba kolumn". Tamten wzór zakłada równe rzędy,
     /// a rzędy równe nie są: belka łamie rząd w pół i sekcja narzędzi zaczyna własny.
-    /// Stąd zgłoszenie [U], że w dół „skacze dziwnie między sekcjami".
+    /// Stąd zgłoszenie użytkownika, że w dół „skacze dziwnie między sekcjami".
     ///
     /// Narzędzia dostają przesunięcie w dół o wysokość sekcji głównej, żeby obie
     /// siatki leżały w jednym układzie współrzędnych — inaczej pierwszy rząd narzędzi
@@ -632,7 +632,7 @@ struct AppGridView: View {
         [GridItem(.adaptive(minimum: szerokoscKafelka), spacing: odstepPoziomy)]
     }
 
-    /// Odstęp góra/dół zmniejszony o 40% na życzenie [U] (2026-08-22).
+    /// Odstęp góra/dół zmniejszony o 40% na życzenie użytkownika (2026-08-22).
     ///
     /// Liczy się suma, nie sama ta liczba: przerwa między rzędami to `odstepPionowy`
     /// plus dwa razy pionowy padding kafelka. Było 6 + 4 + 4 = 14 pt, jest 4 + 2 + 2 = 8 pt.
@@ -640,7 +640,7 @@ struct AppGridView: View {
     private var odstepPionowy: CGFloat { 4 }
     private var odstepPoziomy: CGFloat { 4 }
 
-    /// Odstęp między ikoną a belką, zmniejszony o 30% na życzenie [U] (2026-08-22).
+    /// Odstęp między ikoną a belką, zmniejszony o 30% na życzenie użytkownika (2026-08-22).
     ///
     /// Też jest sumą: odstęp kawałków `VStack` plus pionowy padding samej belki.
     /// Było 8 + 2 = 10 pt, jest 6 + 1 = **7 pt**.
@@ -683,7 +683,7 @@ private struct CelSekcji: Equatable {
 private struct Kafelek: View {
     let app: InstalledApp
     let rozmiar: CGFloat
-    /// Ukryty program widać tylko przez szukajkę — i wtedy jest przygaszony, żeby [U]
+    /// Ukryty program widać tylko przez szukajkę — i wtedy jest przygaszony, żeby użytkownik
     /// wiedział, dlaczego nie ma go w siatce.
     let ukryty: Bool
     let edycja: Bool
@@ -722,7 +722,7 @@ private struct Kafelek: View {
         }
     }
 
-    /// Bez pozycji układu — te siedzą w menu okna, nie na ikonie (decyzja [U] 2026-08-22).
+    /// Bez pozycji układu — te siedzą w menu okna, nie na ikonie (decyzja użytkownika 2026-08-22).
     @ViewBuilder
     private var menu: some View {
         if !edycja {

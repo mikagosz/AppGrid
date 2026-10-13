@@ -1,13 +1,13 @@
 import AppKit
 
-// Wstawianie WLASNEJ ikony [U] do gniazda AppIcon.
+// Wstawianie WLASNEJ ikony użytkownika do gniazda AppIcon.
 //
 // Robi trzy rzeczy, ktorych `sips` nie zrobi:
-//  1. wycina biale tlo (plik od [U] nie ma kanalu alfa — zmierzone 2026-08-20),
+//  1. wycina biale tlo (plik od użytkownika nie ma kanalu alfa — zmierzone 2026-08-20),
 //  2. odbieliwa krawedz, czyli odwraca zmieszanie piksela z bialym tlem,
 //  3. wypuszcza wszystkie 7 rozmiarow i SPRAWDZA liczbe pikseli w zapisanym pliku.
 //
-// Dwa warianty, bo to decyzja [U], nie moja:
+// Dwa warianty, bo to decyzja użytkownika, nie moja:
 //   pelna — ksztalt na calym plotnie, tak jak w oryginale
 //   macos — ksztalt zmniejszony do proporcji systemowych (824 z 1024), czyli tak,
 //           jak siedza ikony sasiadow w Docku

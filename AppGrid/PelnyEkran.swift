@@ -23,7 +23,7 @@ enum PelnyEkran {
     /// (`CGPreflightScreenCaptureAccess() == false`, 7 cudzych okien jako kontrola
     /// dodatnia): ramki i nazwy programów przychodzą dla wszystkich 7 okien, redagowany
     /// jest wyłącznie **tytuł** okna — 1 z 7. Tytułu tutaj nie potrzebujemy, więc ta
-    /// ścieżka nie prosi [U] o żadną nową zgodę.
+    /// ścieżka nie prosi użytkownika o żadną nową zgodę.
     static func naWierzchu(ekran: CGRect) -> Bool {
         guard let pid = NSWorkspace.shared.frontmostApplication?.processIdentifier else {
             return false

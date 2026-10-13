@@ -3,10 +3,10 @@ import Combine
 import Darwin
 import ServiceManagement
 
-/// Uruchamianie AppGrid przy logowaniu — zamówienie [U] 2026-10-03.
+/// Uruchamianie AppGrid przy logowaniu — zamówienie użytkownika 2026-10-03.
 ///
 /// Stanu **nie trzymamy** w `UserDefaults`: prawdę zna system (Ustawienia systemowe →
-/// Ogólne → Rzeczy otwierane przy logowaniu), a [U] może tam przełącznik zdjąć sam.
+/// Ogólne → Rzeczy otwierane przy logowaniu), a użytkownik może tam przełącznik zdjąć sam.
 /// Własna kopia w defaults rozjechałaby się z systemem przy pierwszej takiej zmianie,
 /// więc za każdym razem pytamy `SMAppService` o bieżący stan.
 @MainActor
@@ -53,7 +53,7 @@ final class StartPrzyLogowaniu: ObservableObject {
 
     /// Czy ten start to start z logowania — wtedy okno ma się **nie** pokazać.
     ///
-    /// Zamówienie [U] 2026-10-03: po zalogowaniu AppGrid ma czekać w tle na skrót, róg
+    /// Zamówienie użytkownika 2026-10-03: po zalogowaniu AppGrid ma czekać w tle na skrót, róg
     /// albo klik w Dock, a nie wyskakiwać na ekran. Wzór wzięty z ColorMyFolder 0.1.17,
     /// gdzie zmierzono oba haczyki niżej:
     ///
@@ -82,7 +82,7 @@ final class StartPrzyLogowaniu: ObservableObject {
     }
 
     /// Po starcie z logowania system potrafi chwilę później sam przysłać „reopen" —
-    /// jak klik w Dock. Przez pierwsze pół minuty go ignorujemy; klik [U] po tym czasie
+    /// jak klik w Dock. Przez pierwsze pół minuty go ignorujemy; klik użytkownika po tym czasie
     /// otwiera okno normalnie. Zmierzone w ColorMyFolder 0.1.17.
     nonisolated static let ciszaPoStarcie: TimeInterval = 30
 

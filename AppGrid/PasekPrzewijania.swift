@@ -1,16 +1,16 @@
 import AppKit
 
-/// Cieńszy pasek przewijania — zgłoszenie [U] 2026-09-05 (AG-29): *„ma być 3x cieńszy
+/// Cieńszy pasek przewijania — zgłoszenie użytkownika 2026-09-05 (AG-29): *„ma być 3x cieńszy
 /// niż obecny"*.
 ///
-/// [U] ma w systemie **„Zawsze pokazuj paski przewijania"**, więc pasek jest w stylu
+/// Użytkownik ma w systemie **„Zawsze pokazuj paski przewijania"**, więc pasek jest w stylu
 /// `legacy` i zabiera szerokość w układzie: zmierzone
 /// `NSScroller.scrollerWidth(for: .regular, scrollerStyle: .legacy)` = **17 pt**.
 /// Stąd „3× cieńszy" liczymy z wartości systemowej, a nie wpisujemy 6 na sztywno —
-/// gdy [U] przełączy styl albo Apple zmieni liczbę, proporcja zostaje.
+/// gdy użytkownik przełączy styl albo Apple zmieni liczbę, proporcja zostaje.
 final class CienkiScroller: NSScroller {
 
-    /// Dzielnik z zamówienia [U]. Jedna liczba, żeby nie rozjechała się między
+    /// Dzielnik z zamówienia użytkownika. Jedna liczba, żeby nie rozjechała się między
     /// szerokością paska a szerokością gałki.
     static let dzielnik: CGFloat = 3
 

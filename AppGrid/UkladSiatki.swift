@@ -1,6 +1,6 @@
 import Foundation
 
-/// Belka pozioma, którą [U] wstawia między ikony, żeby porobić sobie własne sekcje.
+/// Belka pozioma, którą użytkownik wstawia między ikony, żeby porobić sobie własne sekcje.
 ///
 /// Od 0.2.9 belka **nie jest przywiązana do programu** — siedzi na swojej pozycji
 /// w `kolejnosc`, tak samo jak ikony. Inaczej nie dałoby się jej przesunąć ani
@@ -36,10 +36,10 @@ enum ElementUkladu: Codable, Hashable, Identifiable {
     }
 }
 
-/// Która sekcja siatki ma własną kolejność [U].
+/// Która sekcja siatki ma własną kolejność użytkownika.
 ///
 /// Do 0.2.23 kolejność miały tylko „Wszystkie programy", a narzędzia systemowe leciały
-/// alfabetycznie i nie przyjmowały upuszczenia. Decyzja [U] 2026-08-23 (AG-23): obie
+/// alfabetycznie i nie przyjmowały upuszczenia. Decyzja użytkownika 2026-08-23 (AG-23): obie
 /// sekcje mają swoją kolejność i **wymieniają się ikonami** — narzędzie da się wyciągnąć
 /// do programów, a program wciągnąć do narzędzi.
 enum Sekcja: Int, Codable, Hashable, CaseIterable, Identifiable {
@@ -49,7 +49,7 @@ enum Sekcja: Int, Codable, Hashable, CaseIterable, Identifiable {
     var id: Int { rawValue }
 }
 
-/// Układanie siatki: własna kolejność [U] i cięcie jej belkami.
+/// Układanie siatki: własna kolejność użytkownika i cięcie jej belkami.
 enum UkladSiatki {
 
     /// Kawałek listy: belka nad nim (albo jej brak) i programy do następnej belki.
@@ -172,7 +172,7 @@ enum UkladSiatki {
     ///
     /// Zwraca indeks **w podanej liście**, od 0 do `ramki.count`. Lista musi być tą
     /// **bez** elementu ciągniętego — inaczej celem bywałby on sam, a przeniesienie
-    /// czegoś przed samo siebie jest brakiem zmiany. To był błąd zgłoszony przez [U]
+    /// czegoś przed samo siebie jest brakiem zmiany. To był błąd zgłoszony przez użytkownika
     /// 2026-08-22 („udało się przestawić tylko jedną ikonę").
     ///
     /// Trafianie idzie po **geometrii**, a nie po tym, który kafelek zgłosi się jako cel.
@@ -300,7 +300,7 @@ enum UkladSiatki {
     ///
     /// Wołane przed każdym przesunięciem: dopóki kolejność jest pusta, siatka leci
     /// alfabetycznie i nie ma czego przestawiać. Pierwsze pociągnięcie ikony musi więc
-    /// najpierw utrwalić to, co [U] widzi na ekranie, a dopiero potem ruszyć jeden element.
+    /// najpierw utrwalić to, co użytkownik widzi na ekranie, a dopiero potem ruszyć jeden element.
     nonisolated static func domknij(_ kolejnosc: [ElementUkladu], programy: [InstalledApp]) -> [ElementUkladu] {
         var znane = Set<String>()
         for element in kolejnosc {

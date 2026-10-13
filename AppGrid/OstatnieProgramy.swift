@@ -2,7 +2,7 @@ import AppKit
 
 /// Sekcje „ostatnio zainstalowane" i „ostatnio używane" u góry listy (pozycja AG-1).
 ///
-/// Obie są **opcjami** — domyślnie wyłączone, włącza je [U] w ustawieniach.
+/// Obie są **opcjami** — domyślnie wyłączone, włącza je użytkownik w ustawieniach.
 enum OstatnieProgramy {
 
     /// Ile wpisów najwyżej trzymamy w dzienniku uruchomień.

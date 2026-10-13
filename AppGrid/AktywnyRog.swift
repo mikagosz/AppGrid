@@ -20,7 +20,7 @@ final class AktywnyRog {
     // Sufit: reakcja opóźniona najwyżej o jeden takt, 5 sprawdzeń pozycji na sekundę.
     // Droga wyjścia: NSEvent.addGlobalMonitorForEvents(matching: .mouseMoved) — ale
     // najpierw trzeba zmierzyć, czy w tej wersji macOS działa bez zgody na Dostępność.
-    // Zegar nie wymaga żadnej zgody, więc nie wciąga [U] w klikanie w Ustawieniach.
+    // Zegar nie wymaga żadnej zgody, więc nie wciąga użytkownika w klikanie w Ustawieniach.
     private static let taktSekundy: TimeInterval = 0.2
 
     /// Luz dla zegara: system może skleić takt z innymi wybudzeniami. Przy takcie 0,2 s

@@ -2,7 +2,7 @@ import AppKit
 import Carbon.HIToolbox
 
 // Harness Etapu 1b + 2 + AG-1 … AG-9 — logika, ktora da sie sprawdzic bez okien.
-// GUI testuje [U]; tutaj pilnujemy tego, co ma jednoznaczna odpowiedz:
+// GUI testuje użytkownik; tutaj pilnujemy tego, co ma jednoznaczna odpowiedz:
 // strefy aktywnego rogu, wybor rozmiaru okna Findera i budowa sekcji "ostatnie".
 
 var passed = 0
@@ -19,7 +19,7 @@ func checkEqual<T: Equatable>(_ label: String, _ lhs: T, _ rhs: T) {
 // ─────────────────────────────────────────────────────────────────────
 // AKTYWNY ROG
 // Uklad wspolrzednych: poczatek w LEWYM DOLNYM rogu, os Y w gore.
-// Ekran wziety z pomiaru na Mac mini [U] (2026-08-20).
+// Ekran wziety z pomiaru na Mac mini użytkownika (2026-08-20).
 // ─────────────────────────────────────────────────────────────────────
 let ekran = CGRect(x: 0, y: 0, width: 3200, height: 1800)
 let bok = AktywnyRog.bokStrefy
@@ -110,7 +110,7 @@ checkEqual("tryb OSOBNO bierze rozmiar zapamietany dla folderu",
            OknaFindera.rozmiarDlaFolderu(folder: "/Users/x/Downloads", tryb: .osobnoPerFolder,
                                          zapamietane: zapamietane, globalny: globalny),
            CGSize(width: 900, height: 600))
-// Decyzja [U] 2026-09-12: w trybie OSOBNO rozmiar globalny nie obowiazuje wcale.
+// Decyzja użytkownika 2026-09-12: w trybie OSOBNO rozmiar globalny nie obowiazuje wcale.
 // Folder bez wpisu ma zostac taki, jak otworzyl go Finder — czyli nil, nie globalny.
 check("tryb OSOBNO bez wpisu NIE rusza okna",
       OknaFindera.rozmiarDlaFolderu(folder: "/Users/x/Nowy", tryb: .osobnoPerFolder,
@@ -415,7 +415,7 @@ checkEqual("podglad 'na koniec' tez nic nie gubi",
            Set(domkniete.map(\.id)))
 
 // Zasiew naglowka „Wszystkie programy": belka na gorze JEST naglowkiem sekcji.
-// Warunkiem nie jest „uklad jest swiezy" — [U] moze juz cos miec poukladane.
+// Warunkiem nie jest „uklad jest swiezy" — użytkownik moze juz cos miec poukladane.
 func pierwszaJestBelka(_ k: [ElementUkladu]) -> Bool {
     if case .belka = k.first { return true }
     return false
@@ -501,7 +501,7 @@ checkEqual("zerowa szerokosc kafelka nie dzieli przez zero",
            UkladSiatki.kolumny(szerokosc: 800, szerokoscKafelka: 0, odstep: 4), 1)
 check("kolumn przybywa wraz z szerokoscia", kol(400) < kol(800) && kol(800) < kol(1600))
 
-// [U] 2026-08-22: „udalo mi sie tylko jedna przestawic". Sprawdzamy KAZDA pare,
+// Użytkownik 2026-08-22: „udalo mi sie tylko jedna przestawic". Sprawdzamy KAZDA pare,
 // nie jedna — przy jednej probce ten blad przechodzil niezauwazony.
 let wszystkieElementy = UkladSiatki.wstawBelke(belka, przed: nil, w: domkniete)
 var zleZlozone: [String] = []
@@ -551,7 +551,7 @@ checkEqual("pierwsza ikona przy lewej krawedzi", r5[0].minX, 0)
 checkEqual("druga ikona za odstepem", r5[1].minX, 104)
 checkEqual("wysokosc jednego rzedu", UkladSiatki.wysokosc(ramek: r5), 100)
 
-// Ta sama piatka w wezszym oknie ma sie ZAWINAC — to jest test na zgloszenie [U],
+// Ta sama piatka w wezszym oknie ma sie ZAWINAC — to jest test na zgloszenie użytkownika,
 // ze przy zwezaniu okna ikony nie przestawialy sie z powrotem.
 let rWaskie = UkladSiatki.ramki(dla: poz(5), szerokosc: 320, metryka: m)
 checkEqual("w 320 px mieszcza sie 3 kolumny", Set(rWaskie.map(\.minX)).count, 3)
@@ -582,7 +582,7 @@ checkEqual("punkt na lewo od siatki daje poczatek", trafienie(-50, 50, r5), 0)
 checkEqual("punkt daleko pod siatka trafia w ostatni rzad", trafienie(520, 9999, r5), 5)
 checkEqual("pusta siatka daje 0", trafienie(10, 10, []), 0)
 
-// KAZDA ikona musi byc osiagalna — to jest zgloszenie [U] „udalo sie tylko jedna".
+// KAZDA ikona musi byc osiagalna — to jest zgloszenie użytkownika „udalo sie tylko jedna".
 let r12 = UkladSiatki.ramki(dla: poz(12), szerokosc: 528, metryka: m)
 var nieosiagalne: [Int] = []
 for (i, r) in r12.enumerated() {
@@ -605,7 +605,7 @@ for zla in [CGFloat.infinity, .nan, 0, -100] {
 
 // ─────────────────────────────────────────────────────────────────────
 // AG-23 — PRZENOSZENIE MIEDZY SEKCJAMI (0.2.24)
-// Zgloszenie [U]: ikony z "Narzedzi systemowych" maja dac sie wyciagac,
+// Zgloszenie użytkownika: ikony z "Narzedzi systemowych" maja dac sie wyciagac,
 // a do tej sekcji ma dac sie dolozyc inne. Sekcje sa wiec DWIE i obie maja
 // wlasna kolejnosc; ruch miedzy nimi to jedna operacja na dwoch zapisach.
 // ─────────────────────────────────────────────────────────────────────
@@ -618,7 +618,7 @@ let beta = ElementUkladu.program("/Applications/Beta.app")
 print("PROBKA KONTROLNA: sekcja glowna \(kolGlowna.count) pozycji, narzedzia \(kolNarzedzi.count)")
 checkEqual("sekcje sa dokladnie dwie", Sekcja.allCases.count, 2)
 
-// Wyciagniecie narzedzia do programow — to jest samo zgloszenie [U].
+// Wyciagniecie narzedzia do programow — to jest samo zgloszenie użytkownika.
 let wyjscie = UkladSiatki.przenies(terminal, zKolejnosci: kolNarzedzi, doKolejnosci: kolGlowna, przed: beta)
 check("wyciagniete narzedzie znika ze swojej sekcji", !wyjscie.zrodlo.contains(terminal))
 check("i pojawia sie w docelowej", wyjscie.cel.contains(terminal))

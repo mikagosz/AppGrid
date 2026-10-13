@@ -19,7 +19,7 @@ enum RogEkranu: Int, CaseIterable, Identifiable {
 
 /// Jak moduł traktuje rozmiary okien Findera.
 enum TrybOkienFindera: Int, CaseIterable, Identifiable {
-    /// Jeden rozmiar narzucany każdemu nowemu oknu (decyzja [U] 2026-08-14).
+    /// Jeden rozmiar narzucany każdemu nowemu oknu (decyzja użytkownika 2026-08-14).
     case jedenDlaWszystkich = 0
     /// Każdy folder pamięta swój własny rozmiar.
     case osobnoPerFolder = 1
@@ -53,7 +53,7 @@ enum TrybOstatnich: Int, CaseIterable, Identifiable {
 
 /// Ustawienia programu — jedno miejsce, jeden zapis do `UserDefaults`.
 ///
-/// Wszystko, co [U] przestawia w oknie ustawień, siedzi tutaj. Każda właściwość
+/// Wszystko, co użytkownik przestawia w oknie ustawień, siedzi tutaj. Każda właściwość
 /// zapisuje się od razu w `didSet`, tak samo jak `iconScale` w [`AppGridModel`] —
 /// dzięki temu nie ma osobnego kroku „zapisz" i nie da się zgubić zmiany przy
 /// zamknięciu okna.
@@ -77,14 +77,14 @@ final class Ustawienia: ObservableObject {
 
     // MARK: - Wygląd
 
-    /// 1,0 = nieprzezroczyste. 0,95 = 5% przezroczystości (wartość zamówiona przez [U]).
+    /// 1,0 = nieprzezroczyste. 0,95 = 5% przezroczystości (wartość zamówiona przez użytkownika).
     @Published var krycieTla: Double { didSet { zapisz(krycieTla, K.krycieTla) } }
 
     // MARK: - Okno główne (AG-22)
 
     /// Szerokość okna głównego, ustawiana **tutaj**, a nie myszą.
     ///
-    /// Decyzja [U] 2026-08-23 po trzeciej rundzie usterki „okno nie przeformatowuje się
+    /// Decyzja użytkownika 2026-08-23 po trzeciej rundzie usterki „okno nie przeformatowuje się
     /// z dużego na małe": skoro zwężanie ciągnięciem za krawędź psuło układ za każdym
     /// razem, krawędź przestaje być ruchoma. Wysokość zostaje wolna — zgłoszenie
     /// dotyczyło wyłącznie szerokości.
@@ -102,7 +102,7 @@ final class Ustawienia: ObservableObject {
 
     /// Czy okno ma wychodzić na środku ekranu, cokolwiek zapisała ostatnia pozycja.
     ///
-    /// Zgłoszenie [U] 2026-09-05 z testu 0.2.25 (AG-25). Rozmiar dalej jest pamiętany —
+    /// Zgłoszenie użytkownika 2026-09-05 z testu 0.2.25 (AG-25). Rozmiar dalej jest pamiętany —
     /// `setFrameAutosaveName` zostaje, przestawiamy wyłącznie początek ramki.
     @Published var oknoNaSrodku: Bool { didSet { zapisz(oknoNaSrodku, K.oknoNaSrodku) } }
 
@@ -120,7 +120,7 @@ final class Ustawienia: ObservableObject {
 
     // MARK: - Ukryte programy
 
-    /// Ścieżki programów, których [U] nie chce widzieć w siatce.
+    /// Ścieżki programów, których użytkownik nie chce widzieć w siatce.
     ///
     /// Wracają, gdy tylko coś wpiszesz w szukajkę — ukrycie porządkuje widok, nie odbiera
     /// dostępu do programu.
@@ -206,14 +206,14 @@ final class Ustawienia: ObservableObject {
 
     /// Zasiewa układ przy pierwszym wejściu w edycję.
     ///
-    /// Utrwala to, co [U] widzi na ekranie, i zakłada na górze belkę „Wszystkie programy".
+    /// Utrwala to, co użytkownik widzi na ekranie, i zakłada na górze belkę „Wszystkie programy".
     /// Dzięki temu nagłówek tej sekcji przestaje być wmurowany w widok i staje się zwykłą
     /// belką — da się go przesunąć, przemianować i wstawić coś **nad** nim. O to prosił
-    /// [U] 2026-08-22: „żebym mógł na górę poukładać swoją kategorię".
+    /// Użytkownik 2026-08-22: „żebym mógł na górę poukładać swoją kategorię".
     func zasiej(programy: [InstalledApp], nazwaPierwszejBelki: String) {
         let domknieta = UkladSiatki.domknij(kolejnosc, programy: programy)
         // Belka na samej górze JEST nagłówkiem tej sekcji. Warunkiem nie jest więc
-        // „układ jest świeży" — bo [U] mógł już coś poukładać, a wtedy zasiew by się
+        // „układ jest świeży" — bo użytkownik mógł już coś poukładać, a wtedy zasiew by się
         // nie odpalił i nagłówek zostałby wmurowany na zawsze.
         if case .belka = domknieta.first {
             kolejnosc = domknieta
@@ -268,7 +268,7 @@ final class Ustawienia: ObservableObject {
 
     /// Kasuje własny układ — obie siatki wracają do alfabetu, belki znikają.
     ///
-    /// Przypisań do sekcji **nie rusza**: to osobna decyzja [U] („to narzędzie ma stać
+    /// Przypisań do sekcji **nie rusza**: to osobna decyzja użytkownika („to narzędzie ma stać
     /// wśród programów"), a nie kolejność. Do cofnięcia jest osobny przycisk.
     func przywrocAlfabet() {
         kolejnosc = []
@@ -286,7 +286,7 @@ final class Ustawienia: ObservableObject {
     @Published var finderTryb: TrybOkienFindera { didSet { zapisz(finderTryb.rawValue, K.finderTryb) } }
     @Published var finderSzerokosc: Double { didSet { zapisz(finderSzerokosc, K.finderSzerokosc) } }
     @Published var finderWysokosc: Double { didSet { zapisz(finderWysokosc, K.finderWysokosc) } }
-    /// Czy zmiana rozmiaru okna przez [U] ma nadpisywać zapamiętaną wartość.
+    /// Czy zmiana rozmiaru okna przez użytkownika ma nadpisywać zapamiętaną wartość.
     @Published var finderUczySie: Bool { didSet { zapisz(finderUczySie, K.finderUczySie) } }
 
     private init() {
@@ -300,7 +300,7 @@ final class Ustawienia: ObservableObject {
         rogWlaczony        = d.object(forKey: K.rogWlaczony) as? Bool ?? false
         rog                = RogEkranu(rawValue: d.object(forKey: K.rog) as? Int ?? 0) ?? .lewyGorny
         // Domyślnie włączony: sam róg startuje wyłączony, więc nikomu to nic nie zmienia,
-        // a włączając róg [U] dostaje od razu zachowanie, o które prosił.
+        // a włączając róg użytkownik dostaje od razu zachowanie, o które prosił.
         rogGamemode        = d.object(forKey: K.rogGamemode) as? Bool ?? true
 
         krycieTla          = d.object(forKey: K.krycieTla) as? Double ?? 0.95
@@ -311,7 +311,7 @@ final class Ustawienia: ObservableObject {
         szerokoscOkna      = min(max(zapisanaSzerokosc, Self.zakresSzerokosciOkna.lowerBound),
                                  Self.zakresSzerokosciOkna.upperBound)
 
-        // Domyślnie włączone: to jest zachowanie zamówione przez [U] w zgłoszeniu,
+        // Domyślnie włączone: to jest zachowanie zamówione przez użytkownika w zgłoszeniu,
         // a zapisana pozycja i tak nikomu nie służyła — okno wracało tam, gdzie
         // ostatnio je odsunięto.
         oknoNaSrodku       = d.object(forKey: K.oknoNaSrodku) as? Bool ?? true
