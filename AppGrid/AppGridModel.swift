@@ -7,8 +7,11 @@ import SwiftUI
 /// `przed == nil` znaczy „na koniec sekcji docelowej". Z tej jednej pary liczy się
 /// **i** podgląd, **i** zapis — dzięki temu ikona ląduje dokładnie tam, gdzie ją było
 /// widać przed puszczeniem.
+///
+/// Od 2026-10-13 jedzie **grupa**, nie jeden element: belka razem ze swoją sekcją
+/// albo kilka zaznaczonych ikon. Pojedyncza ikona to grupa jednoelementowa.
 struct PodgladPrzeniesienia: Equatable {
-    let co: ElementUkladu
+    let grupa: [ElementUkladu]
     let doSekcji: Sekcja
     let przed: ElementUkladu?
 }
@@ -162,7 +165,75 @@ final class AppGridModel: ObservableObject {
         trybEdycji = true
     }
 
-    func wyjdzZEdycji() { trybEdycji = false }
+    func wyjdzZEdycji() {
+        trybEdycji = false
+        zaznaczone = []
+        kotwicaZaznaczenia = nil
+    }
+
+    // MARK: - Zaznaczanie kilku ikon (2026-10-13)
+
+    /// Ikony zaznaczone w trybie edycji — przeciągnięcie jednej z nich ciągnie wszystkie.
+    /// Zgłoszenie użytkownika: „nie da się zaznaczać, żeby kilka ikon wybrać i przesunąć".
+    @Published private(set) var zaznaczone: Set<String> = []
+    /// Od której ikony liczy się zakres przy ⇧-kliknięciu.
+    private var kotwicaZaznaczenia: String?
+
+    /// Kliknięcie w ikonę w trybie edycji — jak w Finderze: samo kliknięcie zaznacza
+    /// tylko ją, ⌘ dokłada albo zdejmuje, ⇧ zaznacza zakres od poprzedniego kliknięcia.
+    func kliknietoWEdycji(_ app: InstalledApp, modyfikatory: NSEvent.ModifierFlags) {
+        if modyfikatory.contains(.shift), let kotwica = kotwicaZaznaczenia {
+            let kolejne = (pozycje(.glowne, podglad: nil) + pozycje(.narzedzia, podglad: nil)).compactMap { p -> String? in
+                if case .program(let a) = p { return a.id }
+                return nil
+            }
+            if let a = kolejne.firstIndex(of: kotwica), let b = kolejne.firstIndex(of: app.id) {
+                zaznaczone.formUnion(kolejne[min(a, b)...max(a, b)])
+                return
+            }
+        }
+        if modyfikatory.contains(.command) {
+            if zaznaczone.contains(app.id) { zaznaczone.remove(app.id) } else { zaznaczone.insert(app.id) }
+        } else {
+            zaznaczone = [app.id]
+        }
+        kotwicaZaznaczenia = app.id
+    }
+
+    func wyczyscZaznaczenie() {
+        zaznaczone = []
+        kotwicaZaznaczenia = nil
+    }
+
+    /// Co pojedzie, gdy użytkownik chwyci ten element.
+    ///
+    /// - belka → belka z całą swoją sekcją (do następnej belki); z ⌥ — sama belka,
+    ///   żeby dało się dalej przecinać sekcje w innym miejscu,
+    /// - zaznaczona ikona → wszystkie zaznaczone, w kolejności z siatki,
+    /// - niezaznaczona ikona → tylko ona (jak w Finderze).
+    ///
+    /// Do sekcji belki wchodzą też programy ukryte — jadą razem z nią, żeby po odkryciu
+    /// wróciły do swojej sekcji, a nie zostały w starym miejscu.
+    func grupaDoCiagniecia(_ chwycony: ElementUkladu, samaBelka: Bool) -> [ElementUkladu] {
+        let kolejnosci = kolejnosciZPodgladem(nil)
+        switch chwycony {
+        case .belka(let uuid):
+            guard !samaBelka else { return [chwycony] }
+            let sekcja = sekcjaElementu(chwycony)
+            let swoje = Set(programyDoUkladu(sekcja).map(\.id))
+            let grupa = UkladSiatki.sekcjaZaBelka(uuid, w: kolejnosci[sekcja] ?? []).filter {
+                if case .program(let sciezka) = $0 { return swoje.contains(sciezka) }
+                return true
+            }
+            return grupa.isEmpty ? [chwycony] : grupa
+        case .program(let sciezka):
+            guard zaznaczone.contains(sciezka), zaznaczone.count > 1 else { return [chwycony] }
+            return Sekcja.allCases.flatMap { kolejnosci[$0] ?? [] }.filter {
+                if case .program(let s) = $0 { return zaznaczone.contains(s) }
+                return false
+            }
+        }
+    }
 
     /// Programy, których dotyczy własna kolejność danej sekcji.
     ///
@@ -205,15 +276,18 @@ final class AppGridModel: ObservableObject {
     /// „u sąsiada", choć zapis jeszcze o tym nie wie.
     private func programyWidoczne(_ sekcja: Sekcja, podglad: PodgladPrzeniesienia?) -> [InstalledApp] {
         var lista = visibleApps.filter { self.sekcja($0) == sekcja }
-        guard let podglad, case .program(let sciezka) = podglad.co,
-              let app = apps.first(where: { $0.id == sciezka }),
-              self.sekcja(app) != podglad.doSekcji else { return lista }
+        guard let podglad else { return lista }
 
-        if sekcja == podglad.doSekcji {
-            // Dokładamy tylko to, co i tak byłoby widoczne — ukrytego program nie odsłaniamy.
-            if visibleApps.contains(where: { $0.id == sciezka }) { lista.append(app) }
-        } else if sekcja == self.sekcja(app) {
-            lista.removeAll { $0.id == sciezka }
+        for element in podglad.grupa {
+            guard case .program(let sciezka) = element,
+                  let app = visibleApps.first(where: { $0.id == sciezka }),
+                  self.sekcja(app) != podglad.doSekcji else { continue }
+            // Szukamy w widocznych — ukrytego programu podgląd nie odsłania.
+            if sekcja == podglad.doSekcji {
+                lista.append(app)
+            } else if sekcja == self.sekcja(app) {
+                lista.removeAll { $0.id == sciezka }
+            }
         }
         return lista
     }
@@ -228,21 +302,12 @@ final class AppGridModel: ObservableObject {
             wynik[s] = UkladSiatki.domknij(ustawienia.kolejnosc(s), programy: programyDoUkladu(s))
         }
         guard let podglad else { return wynik }
-
-        let zrodlo = sekcjaElementu(podglad.co)
-        guard zrodlo != podglad.doSekcji else {
-            wynik[zrodlo] = UkladSiatki.przenies(podglad.co, przed: podglad.przed, w: wynik[zrodlo] ?? [])
-            return wynik
-        }
-        let ruch = UkladSiatki.przenies(
-            podglad.co,
-            zKolejnosci: wynik[zrodlo] ?? [],
-            doKolejnosci: wynik[podglad.doSekcji] ?? [],
-            przed: podglad.przed
+        return UkladSiatki.przenies(
+            grupa: podglad.grupa,
+            przed: podglad.przed,
+            doSekcji: podglad.doSekcji,
+            kolejnosci: wynik
         )
-        wynik[zrodlo] = ruch.zrodlo
-        wynik[podglad.doSekcji] = ruch.cel
-        return wynik
     }
 
     /// Czy nagłówek „Wszystkie programy" ma jeszcze rysować widok.
@@ -258,24 +323,18 @@ final class AppGridModel: ObservableObject {
         ustawienia.dodajSeparator(przed: cel, w: sekcja, wsrod: programyDoUkladu(sekcja))
     }
 
-    /// Zapisuje przeniesienie — w tej samej sekcji albo do drugiej.
-    func przenies(_ co: ElementUkladu, doSekcji cel: Sekcja, przed: ElementUkladu?) {
-        let zrodlo = sekcjaElementu(co)
+    /// Zapisuje przeniesienie grupy — w tej samej sekcji albo do drugiej.
+    func przenies(_ grupa: [ElementUkladu], doSekcji cel: Sekcja, przed: ElementUkladu?) {
+        var programy: [Sekcja: [InstalledApp]] = [:]
+        for s in Sekcja.allCases { programy[s] = programyDoUkladu(s) }
+        let poSciezce = Dictionary(apps.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
         ustawienia.przenies(
-            co,
-            z: zrodlo,
+            grupa: grupa,
             do: cel,
             przed: przed,
-            programyZrodla: programyDoUkladu(zrodlo),
-            programyCelu: programyDoUkladu(cel),
-            domyslnaSekcja: domyslnaSekcjaElementu(co)
+            programy: programy,
+            domyslnaSekcja: { sciezka in poSciezce[sciezka].map(self.domyslnaSekcja) ?? .glowne }
         )
-    }
-
-    private func domyslnaSekcjaElementu(_ co: ElementUkladu) -> Sekcja {
-        guard case .program(let sciezka) = co,
-              let app = apps.first(where: { $0.id == sciezka }) else { return .glowne }
-        return domyslnaSekcja(app)
     }
 
     func usunSeparator(_ belka: Separator) {
@@ -305,7 +364,7 @@ final class AppGridModel: ObservableObject {
     func resetForShow() {
         query = ""
         category = Self.wszystkie
-        trybEdycji = false
+        wyjdzZEdycji()
         wybrany = nil
     }
 
@@ -389,6 +448,9 @@ final class AppGridModel: ObservableObject {
         launch(app)
     }
 
+    /// Chowa okno AppGrida. Ustawiane przez delegata, bo to on trzyma okno.
+    var schowajOkno: (() -> Void)?
+
     func launch(_ app: InstalledApp) {
         dziennik.zapiszUruchomienie(app)
         objectWillChange.send()
@@ -396,6 +458,12 @@ final class AppGridModel: ObservableObject {
             at: app.url,
             configuration: NSWorkspace.OpenConfiguration()
         )
+        // 🔴 Okno chowamy SAMI, nie czekamy na utratę fokusu. Zgłoszenie z 2026-10-13:
+        // „czasami po Enter program się odpala, a okno AppGrida zostaje na wierzchu".
+        // Chowanie wisiało tylko na `didResignKey`, a tego nie ma, gdy uruchamiany
+        // program nie przejmuje fokusu — już działa w tle, siedzi w pasku menu albo
+        // startuje wolno. Dotyczy i Entera, i kliknięcia.
+        schowajOkno?()
     }
 
     func revealInFinder(_ app: InstalledApp) {

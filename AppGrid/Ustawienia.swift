@@ -236,38 +236,34 @@ final class Ustawienia: ObservableObject {
         separatory[i].nazwa = nazwa
     }
 
-    /// Przesuwa ikonę albo belkę — także **do drugiej sekcji** (AG-23).
+    /// Przesuwa **grupę** — sekcję za belką albo kilka zaznaczonych ikon (2026-10-13).
     ///
-    /// `przed == nil` znaczy „na sam koniec sekcji docelowej". Gdy sekcja się zmienia,
-    /// program dostaje przy okazji przypisanie: bez niego wróciłby na swoje stare miejsce
-    /// przy pierwszym `⌘R`, bo o sekcji decydowałby znowu skaner.
-    ///
-    /// `programyCelu` liczymy **przed** zmianą przypisania, więc domknięcie kolejności celu
-    /// nie dopisze przenoszonego programu na koniec — wstawiamy go sami, tam gdzie trzeba.
+    /// Obie kolejności domykamy **przed** zmianą przypisań, z tych samych list programów,
+    /// które widział podgląd — inaczej domknięcie dopisałoby przenoszone programy na koniec
+    /// sekcji, do której właśnie trafiają. Każdy program z grupy dostaje przypisanie do celu,
+    /// żeby `⌘R` nie odesłał go tam, gdzie chce skaner.
     func przenies(
-        _ co: ElementUkladu,
-        z zrodlo: Sekcja,
+        grupa: [ElementUkladu],
         do cel: Sekcja,
         przed: ElementUkladu?,
-        programyZrodla: [InstalledApp],
-        programyCelu: [InstalledApp],
-        domyslnaSekcja: Sekcja
+        programy: [Sekcja: [InstalledApp]],
+        domyslnaSekcja: (String) -> Sekcja
     ) {
-        let zZrodla = UkladSiatki.domknij(kolejnosc(zrodlo), programy: programyZrodla)
-
-        guard zrodlo != cel else {
-            ustawKolejnosc(UkladSiatki.przenies(co, przed: przed, w: zZrodla), zrodlo)
-            return
+        var domkniete: [Sekcja: [ElementUkladu]] = [:]
+        for s in Sekcja.allCases {
+            domkniete[s] = UkladSiatki.domknij(kolejnosc(s), programy: programy[s] ?? [])
         }
+        let wynik = UkladSiatki.przenies(grupa: grupa, przed: przed, doSekcji: cel, kolejnosci: domkniete)
 
-        let doCelu = UkladSiatki.domknij(kolejnosc(cel), programy: programyCelu)
-        let wynik = UkladSiatki.przenies(co, zKolejnosci: zZrodla, doKolejnosci: doCelu, przed: przed)
-
-        if case .program(let sciezka) = co {
-            przypisz(sciezka, do: cel, domyslna: domyslnaSekcja)
+        for element in grupa {
+            if case .program(let sciezka) = element {
+                przypisz(sciezka, do: cel, domyslna: domyslnaSekcja(sciezka))
+            }
         }
-        ustawKolejnosc(wynik.zrodlo, zrodlo)
-        ustawKolejnosc(wynik.cel, cel)
+        for s in Sekcja.allCases {
+            let nowa = wynik[s] ?? []
+            if nowa != kolejnosc(s) { ustawKolejnosc(nowa, s) }
+        }
     }
 
     /// Kasuje własny układ — obie siatki wracają do alfabetu, belki znikają.

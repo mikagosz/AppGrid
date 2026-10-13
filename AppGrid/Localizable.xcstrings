@@ -596,19 +596,19 @@
         }
       }
     },
-    "Edit mode — drag icons and separators, also between “All apps” and “System utilities”.": {
+    "Edit mode — drag a separator to move its whole section (⌥ moves the separator alone). Click icons to select them, ⌘-click or ⇧-click to select several, then drag them together.": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Edit mode — drag icons and separators, also between “All apps” and “System utilities”."
+            "value": "Edit mode — drag a separator to move its whole section (⌥ moves the separator alone). Click icons to select them, ⌘-click or ⇧-click to select several, then drag them together."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tryb edycji — przeciągaj ikony i belki, także między „Wszystkimi programami” a „Narzędziami systemowymi”."
+            "value": "Tryb edycji — chwyć belkę, żeby przesunąć całą sekcję (z ⌥ samą belkę). Klikaj ikony, żeby je zaznaczyć, z ⌘ albo ⇧ kilka naraz — i przeciągnij razem."
           }
         }
       }

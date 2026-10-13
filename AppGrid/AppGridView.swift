@@ -6,12 +6,20 @@ struct AppGridView: View {
     @FocusState private var szukajkaAktywna: Bool
     /// Co [U] właśnie ciągnie i nad czym trzyma. Z tych dwóch liczy się podgląd układu,
     /// żeby ikony rozstępowały się **w trakcie** ciągnięcia, a nie dopiero po upuszczeniu.
-    @State private var przeciagany: ElementUkladu?
+    ///
+    /// Od 2026-10-13 to **grupa**: belka razem ze swoją sekcją albo zaznaczone ikony.
+    @State private var przeciagany: [ElementUkladu]?
     /// Miejsce wstawienia w liście **bez** elementu ciągniętego, 0…count.
     @State private var indeksPodgladu: Int?
     /// Nad którą sekcją stoi teraz kursor. Od AG-23 sekcje są dwie i obie przyjmują
     /// upuszczenie, więc „gdzie" to już nie tylko indeks.
     @State private var celPrzeciagania: Sekcja?
+    /// Ciągnięta jest cała sekcja (belka bez ⌥). Wtedy układ **stoi**: nic się nie
+    /// rozstępuje, sekcja zostaje w ramce na swoim miejscu, a linia pokazuje granicę,
+    /// na której wyląduje. Zgłoszenie z 2026-10-13: ikony przeskakiwały w trakcie ciągnięcia.
+    @State private var ciagnietaSekcja = false
+    /// Granica między sekcjami, nad którą stoi kursor przy ciągnięciu całej sekcji.
+    @State private var celSekcji: CelSekcji?
     /// Szerokość każdej z siatek — z niej liczy się trafianie kursorem.
     @State private var szerokoscSiatki: [Sekcja: CGFloat] = [:]
 
@@ -104,6 +112,15 @@ struct AppGridView: View {
                 }
             }
             .padding(10)
+            // Kliknięcie w wolne miejsce zdejmuje zaznaczenie. Tło leży POD treścią,
+            // więc kafelki, pola nazw belek i przyciski dalej dostają swoje kliknięcia.
+            .background {
+                if model.trybEdycji {
+                    Color.clear
+                        .contentShape(Rectangle())
+                        .onTapGesture { model.wyczyscZaznaczenie() }
+                }
+            }
             .onChange(of: model.wybrany) { _, nowy in
                 guard let nowy else { return }
                 withAnimation(.easeOut(duration: 0.15)) { przewijanie.scrollTo(nowy, anchor: .center) }
@@ -225,12 +242,25 @@ struct AppGridView: View {
         .modifier(Chwytanie(
             element: .belka(belka.id),
             aktywne: model.trybEdycji,
-            zaczeto: { przeciagany = .belka(belka.id) },
+            // Belka ciągnie całą swoją sekcję (zgłoszenie z 2026-10-13); z ⌥ — samą siebie.
+            zaczeto: {
+                let samaBelka = NSEvent.modifierFlags.contains(.option)
+                przeciagany = model.grupaDoCiagniecia(.belka(belka.id), samaBelka: samaBelka)
+                ciagnietaSekcja = !samaBelka
+                celSekcji = nil
+            },
             podglad: {
+                let ikon = model.grupaDoCiagniecia(.belka(belka.id), samaBelka: NSEvent.modifierFlags.contains(.option))
+                    .filter { if case .program = $0 { return true } else { return false } }.count
                 HStack(spacing: 6) {
                     Image(systemName: "line.3.horizontal")
                     Text(belka.nazwa.isEmpty ? String(localized: "Separator") : belka.nazwa)
                         .font(.system(size: 11, weight: .semibold))
+                    if ikon > 0 {
+                        Text("+\(ikon)")
+                            .font(.system(size: 11, weight: .semibold).monospacedDigit())
+                            .foregroundStyle(.secondary)
+                    }
                 }
                 .padding(.horizontal, 10)
                 .padding(.vertical, 6)
@@ -275,11 +305,14 @@ struct AppGridView: View {
                     switch pozycja {
                     case .belka(let belka):
                         belkaSeparatora(belka).jakoBelka()
+                            .opacity(wyszarzone(pozycja) ? 0.35 : 1)
                     case .program(let app):
                         kafelek(app)
+                            .opacity(wyszarzone(pozycja) ? 0.35 : 1)
                     }
                 }
             }
+            .overlay(alignment: .topLeading) { znacznikiSekcji(sekcja, pozycje: pozycje) }
             .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { szerokosc in
                 szerokoscSiatki[sekcja] = szerokosc
                 przeliczMapeNawigacji()
@@ -307,6 +340,43 @@ struct AppGridView: View {
         // Ślizg, o który prosił [U]: ikony przesuwają się w trakcie ciągnięcia.
         .animation(.snappy(duration: 0.22), value: indeksPodgladu)
         .animation(.snappy(duration: 0.22), value: celPrzeciagania)
+    }
+
+    /// Element ciągniętej sekcji — przygaszony, dopóki kursor stoi nad siatką.
+    private func wyszarzone(_ pozycja: UkladSiatki.Pozycja) -> Bool {
+        guard ciagnietaSekcja, celSekcji != nil, let przeciagany else { return false }
+        return przeciagany.contains { $0.id == pozycja.id }
+    }
+
+    /// Ramka wokół ciągniętej sekcji i linia granicy, na której wyląduje.
+    ///
+    /// Rysowane nad siatką, z tych samych ramek, z których liczy się trafianie —
+    /// sama siatka przez cały czas ciągnięcia stoi w miejscu.
+    @ViewBuilder
+    private func znacznikiSekcji(_ sekcja: Sekcja, pozycje: [UkladSiatki.Pozycja]) -> some View {
+        if ciagnietaSekcja, let cel = celSekcji, let przeciagany {
+            let ramki = UkladSiatki.ramki(dla: pozycje, szerokosc: szerokoscSiatki[sekcja] ?? 0, metryka: metryka)
+            let ciagniete = Set(przeciagany.map(\.id))
+            let wlasne = zip(pozycje, ramki).filter { ciagniete.contains($0.0.id) }.map(\.1)
+            ZStack(alignment: .topLeading) {
+                if let pierwsza = wlasne.first {
+                    let obrys = wlasne.dropFirst().reduce(pierwsza) { $0.union($1) }.insetBy(dx: -4, dy: -3)
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.accentColor.opacity(0.08))
+                        .overlay(RoundedRectangle(cornerRadius: 10)
+                            .strokeBorder(Color.accentColor.opacity(0.7), style: StrokeStyle(lineWidth: 1.5, dash: [5, 3])))
+                        .frame(width: obrys.width, height: obrys.height)
+                        .offset(x: obrys.minX, y: obrys.minY)
+                }
+                if cel.sekcja == sekcja, !cel.brakZmiany {
+                    Capsule()
+                        .fill(Color.accentColor)
+                        .frame(width: szerokoscSiatki[sekcja] ?? 0, height: 4)
+                        .offset(y: cel.y - 2)
+                }
+            }
+            .allowsHitTesting(false)
+        }
     }
 
     /// Powierzchnia do upuszczenia w sekcji, w której nic nie zostało.
@@ -399,25 +469,32 @@ struct AppGridView: View {
     private func pozycjeBezCiagnietego(_ sekcja: Sekcja) -> [UkladSiatki.Pozycja] {
         let wszystkie = model.pozycje(sekcja, podglad: nil)
         guard let przeciagany else { return wszystkie }
-        return wszystkie.filter { $0.id != przeciagany.id }
+        let ciagniete = Set(przeciagany.map(\.id))
+        return wszystkie.filter { !ciagniete.contains($0.id) }
     }
 
     /// Przeciąganie w toku, przełożone na „co, dokąd i przed czym".
     private var podglad: PodgladPrzeniesienia? {
+        // Cała sekcja nie przesuwa układu w trakcie — patrz `ciagnietaSekcja`.
+        guard !ciagnietaSekcja else { return nil }
         guard let przeciagany, let celPrzeciagania, let indeksPodgladu else { return nil }
         let baza = pozycjeBezCiagnietego(celPrzeciagania)
         guard indeksPodgladu < baza.count else {
-            return PodgladPrzeniesienia(co: przeciagany, doSekcji: celPrzeciagania, przed: nil)
+            return PodgladPrzeniesienia(grupa: przeciagany, doSekcji: celPrzeciagania, przed: nil)
         }
         return PodgladPrzeniesienia(
-            co: przeciagany,
+            grupa: przeciagany,
             doSekcji: celPrzeciagania,
             przed: ElementUkladu(id: baza[indeksPodgladu].id)
         )
     }
 
     private func celujWPunkcie(_ punkt: CGPoint, w sekcja: Sekcja) {
-        guard przeciagany != nil else { return }
+        guard let przeciagany else { return }
+        if ciagnietaSekcja {
+            celujGranica(punkt, w: sekcja, grupa: przeciagany)
+            return
+        }
         let ramki = UkladSiatki.ramki(
             dla: pozycjeBezCiagnietego(sekcja),
             szerokosc: szerokoscSiatki[sekcja] ?? 0,
@@ -427,10 +504,31 @@ struct AppGridView: View {
         indeksPodgladu = UkladSiatki.indeksWstawienia(punkt: punkt, ramki: ramki)
     }
 
+    /// Sekcja celuje w granice między sekcjami, nie w ikony. Układ jest pełny (nic nie
+    /// wycięte), bo w tym trybie nic się nie przesuwa i ramki nie uciekają spod kursora.
+    private func celujGranica(_ punkt: CGPoint, w sekcja: Sekcja, grupa: [ElementUkladu]) {
+        let pozycje = model.pozycje(sekcja, podglad: nil)
+        let ramki = UkladSiatki.ramki(dla: pozycje, szerokosc: szerokoscSiatki[sekcja] ?? 0, metryka: metryka)
+        let czyBelka = pozycje.map { if case .belka = $0 { return true } else { return false } }
+        let g = UkladSiatki.granicaSekcji(y: punkt.y, ramki: ramki, czyBelka: czyBelka, odstep: odstepPrzyBelce)
+        let przed = g.indeks < pozycje.count ? ElementUkladu(id: pozycje[g.indeks].id) : nil
+
+        // Granica tuż nad albo tuż pod własną sekcją to brak zmiany — linii nie rysujemy.
+        let ciagniete = Set(grupa.map(\.id))
+        let wlasne = pozycje.indices.filter { ciagniete.contains(pozycje[$0].id) }
+        var brakZmiany = false
+        if let a = wlasne.first, let b = wlasne.last { brakZmiany = g.indeks == a || g.indeks == b + 1 }
+        if let przed, grupa.contains(przed) { brakZmiany = true }
+
+        let nowy = CelSekcji(sekcja: sekcja, przed: przed, y: g.y, brakZmiany: brakZmiany)
+        if celSekcji != nowy { celSekcji = nowy }
+    }
+
     /// Kursor zszedł z sekcji. Kasujemy podgląd **tylko** wtedy, gdy to nadal ta sekcja
     /// jest celem: przy przejeździe z jednej do drugiej AppKit potrafi zgłosić wejście
     /// do nowej przed zejściem ze starej, a wtedy ślepe zerowanie zgasiłoby świeży cel.
     private func porzucCel(_ sekcja: Sekcja) {
+        if celSekcji?.sekcja == sekcja { celSekcji = nil }
         guard celPrzeciagania == sekcja else { return }
         celPrzeciagania = nil
         indeksPodgladu = nil
@@ -443,9 +541,16 @@ struct AppGridView: View {
             przeciagany = nil
             celPrzeciagania = nil
             indeksPodgladu = nil
+            ciagnietaSekcja = false
+            celSekcji = nil
+        }
+        if ciagnietaSekcja {
+            guard let przeciagany, let cel = celSekcji, !cel.brakZmiany else { return false }
+            model.przenies(przeciagany, doSekcji: cel.sekcja, przed: cel.przed)
+            return true
         }
         guard let podglad else { return false }
-        model.przenies(podglad.co, doSekcji: podglad.doSekcji, przed: podglad.przed)
+        model.przenies(podglad.grupa, doSekcji: podglad.doSekcji, przed: podglad.przed)
         return true
     }
 
@@ -467,7 +572,7 @@ struct AppGridView: View {
         HStack(spacing: 10) {
             Image(systemName: "arrow.up.arrow.down.square")
                 .foregroundStyle(.secondary)
-            Text(String(localized: "Edit mode — drag icons and separators, also between “All apps” and “System utilities”."))
+            Text(String(localized: "Edit mode — drag a separator to move its whole section (⌥ moves the separator alone). Click icons to select them, ⌘-click or ⇧-click to select several, then drag them together."))
                 .font(.callout)
             Spacer()
             Button(String(localized: "Add separator")) { model.dodajSeparator(przed: nil) }
@@ -489,17 +594,36 @@ struct AppGridView: View {
             uruchom: { model.launch(app) },
             pokazWFinderze: { model.revealInFinder(app) },
             przelaczUkrycie: { model.przelaczUkrycie(app) },
-            wybrany: model.wybrany == app.id
+            wybrany: model.wybrany == app.id,
+            zaznaczony: model.trybEdycji && model.zaznaczone.contains(app.id),
+            kliknieto: { model.kliknietoWEdycji(app, modyfikatory: NSEvent.modifierFlags) }
         )
         .id(app.id)
         .modifier(Chwytanie(
             element: .program(app.id),
             aktywne: model.trybEdycji,
-            zaczeto: { przeciagany = .program(app.id) },
+            // Zaznaczona ikona ciągnie wszystkie zaznaczone; niezaznaczona — tylko siebie.
+            zaczeto: {
+                przeciagany = model.grupaDoCiagniecia(.program(app.id), samaBelka: false)
+                ciagnietaSekcja = false
+                celSekcji = nil
+            },
             podglad: {
+                let ile = model.grupaDoCiagniecia(.program(app.id), samaBelka: false).count
                 Image(nsImage: IkonyProgramow.ikona(app.url.path))
                     .resizable()
                     .frame(width: model.iconSize, height: model.iconSize)
+                    .overlay(alignment: .topTrailing) {
+                        if ile > 1 {
+                            Text("\(ile)")
+                                .font(.system(size: 11, weight: .bold).monospacedDigit())
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(Capsule().fill(Color.red))
+                                .offset(x: 6, y: -6)
+                        }
+                    }
             }
         ))
     }
@@ -544,6 +668,17 @@ struct AppGridView: View {
     }
 }
 
+/// Granica, na której wyląduje ciągnięta sekcja.
+private struct CelSekcji: Equatable {
+    let sekcja: Sekcja
+    /// Przed tym elementem; `nil` = na koniec sekcji.
+    let przed: ElementUkladu?
+    /// Wysokość linii wstawienia w układzie siatki.
+    let y: CGFloat
+    /// Granica tuż przy własnej sekcji — upuszczenie nic nie zmienia.
+    let brakZmiany: Bool
+}
+
 /// Pojedyncza ikona z podpisem.
 private struct Kafelek: View {
     let app: InstalledApp
@@ -558,6 +693,10 @@ private struct Kafelek: View {
     /// Ikona wskazana strzałkami. Rysowana inaczej niż najechanie myszą: wybór
     /// z klawiatury musi być widoczny także wtedy, gdy kursor stoi gdzie indziej.
     let wybrany: Bool
+    /// Zaznaczony w trybie edycji — jedzie razem z innymi zaznaczonymi.
+    let zaznaczony: Bool
+    /// Kliknięcie w trybie edycji: zaznaczanie, nie uruchamianie.
+    let kliknieto: () -> Void
 
     @State private var podswietlony = false
 
@@ -575,6 +714,8 @@ private struct Kafelek: View {
     private var zawartosc: some View {
         if edycja {
             wnetrze
+                .contentShape(Rectangle())
+                .onTapGesture { kliknieto() }
         } else {
             Button(action: uruchom) { wnetrze }
                 .buttonStyle(.plain)
@@ -612,13 +753,16 @@ private struct Kafelek: View {
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 10)
-                    .strokeBorder(Color.accentColor, lineWidth: wybrany ? 2 : 0)
+                    .strokeBorder(Color.accentColor, lineWidth: (wybrany || zaznaczony) ? 2 : 0)
             )
         }
     }
 
     private var tloKafelka: Color {
-        if edycja { return Color.primary.opacity(podswietlony ? 0.12 : 0.05) }
+        if edycja {
+            if zaznaczony { return Color.accentColor.opacity(0.25) }
+            return Color.primary.opacity(podswietlony ? 0.12 : 0.05)
+        }
         if wybrany { return Color.accentColor.opacity(0.18) }
         return podswietlony ? Color.primary.opacity(0.08) : .clear
     }

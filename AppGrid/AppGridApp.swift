@@ -312,6 +312,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             MainActor.assumeIsolated { okno?.orderOut(nil) }
         }
 
+        // Po uruchomieniu programu okno ma zniknąć zawsze, także gdy tamten nie weźmie fokusu.
+        model.schowajOkno = { [weak okno] in okno?.orderOut(nil) }
+
         window = okno
         return okno
     }

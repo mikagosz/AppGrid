@@ -363,6 +363,82 @@ enum UkladSiatki {
         return (zZrodla, doCelu)
     }
 
+    /// Belka razem z tym, co stoi pod nią — do następnej belki albo do końca kolejności.
+    ///
+    /// Zgłoszenie z 2026-10-13: chwycenie belki przesuwało **samą belkę**, a ikony
+    /// zostawały na miejscu, więc całą sekcję trzeba było przenosić ikona po ikonie.
+    /// Belka spoza kolejności daje pustą listę — nie ma czego ciągnąć.
+    nonisolated static func sekcjaZaBelka(_ belka: UUID, w kolejnosc: [ElementUkladu]) -> [ElementUkladu] {
+        guard let start = kolejnosc.firstIndex(of: .belka(belka)) else { return [] }
+        var wynik: [ElementUkladu] = [kolejnosc[start]]
+        for element in kolejnosc[(start + 1)...] {
+            if case .belka = element { break }
+            wynik.append(element)
+        }
+        return wynik
+    }
+
+    /// Gdzie wyląduje ciągnięta **cała sekcja**: najbliższa kursorowi granica między sekcjami.
+    ///
+    /// Zgłoszenie z 2026-10-13 po 0.2.46: przy ciągnięciu sekcji ikony przeskakiwały
+    /// tam i z powrotem, a sekcja upuszczona odrobinę za wysoko wchodziła **w środek** cudzej
+    /// i zabierała jej ikony. Dlatego sekcja nie celuje w ikony, tylko w granice:
+    /// miejsce przed każdą belką, na samej górze i na końcu. Układ się wtedy nie rusza,
+    /// a ruch z definicji nie może przeciąć innej sekcji.
+    ///
+    /// Zwraca indeks w `pozycje` (przed nim wstawić; `count` = na koniec) i wysokość
+    /// linii wstawienia. Pusta lista daje (0, 0).
+    nonisolated static func granicaSekcji(
+        y: CGFloat,
+        ramki: [CGRect],
+        czyBelka: [Bool],
+        odstep: CGFloat
+    ) -> (indeks: Int, y: CGFloat) {
+        guard !ramki.isEmpty, ramki.count == czyBelka.count else { return (0, 0) }
+        var kandydaci: [(indeks: Int, y: CGFloat)] = []
+        if !czyBelka[0] { kandydaci.append((0, max(0, ramki[0].minY - odstep / 2))) }
+        for i in ramki.indices where czyBelka[i] {
+            kandydaci.append((i, i == 0 ? ramki[0].minY : ramki[i].minY - odstep / 2))
+        }
+        kandydaci.append((ramki.count, wysokosc(ramek: ramki) + odstep / 2))
+        return kandydaci.min { abs($0.y - y) < abs($1.y - y) }!
+    }
+
+    /// Przenosi **grupę** elementów tuż przed `przed` w sekcji `cel` — z zachowaniem
+    /// ich wzajemnej kolejności. Grupa może pochodzić z obu sekcji naraz.
+    ///
+    /// Jedna funkcja na ruch w obrębie sekcji i między sekcjami: grupę wycinamy ze
+    /// **wszystkich** kolejności, a potem wstawiamy w celu. Dzięki temu żaden element
+    /// nie zostaje w dwóch miejscach ani nie znika, niezależnie od tego, skąd przyszedł.
+    ///
+    /// `przed == nil`, cel spoza sekcji albo cel należący do samej grupy znaczy
+    /// „na koniec sekcji docelowej".
+    nonisolated static func przenies(
+        grupa: [ElementUkladu],
+        przed: ElementUkladu?,
+        doSekcji cel: Sekcja,
+        kolejnosci: [Sekcja: [ElementUkladu]]
+    ) -> [Sekcja: [ElementUkladu]] {
+        guard !grupa.isEmpty else { return kolejnosci }
+        let wGrupie = Set(grupa)
+        // Bez powtórzeń — ta sama ikona dwa razy w grupie wstawiłaby się dwa razy.
+        var widziane = Set<ElementUkladu>()
+        let porzadek = grupa.filter { widziane.insert($0).inserted }
+
+        var wynik: [Sekcja: [ElementUkladu]] = [:]
+        for (sekcja, lista) in kolejnosci {
+            wynik[sekcja] = lista.filter { !wGrupie.contains($0) }
+        }
+        var doCelu = wynik[cel] ?? []
+        if let przed, !wGrupie.contains(przed), let dokad = doCelu.firstIndex(of: przed) {
+            doCelu.insert(contentsOf: porzadek, at: dokad)
+        } else {
+            doCelu.append(contentsOf: porzadek)
+        }
+        wynik[cel] = doCelu
+        return wynik
+    }
+
     /// Wstawia nową belkę tuż przed `cel` (albo na sam początek, gdy `cel == nil`).
     nonisolated static func wstawBelke(
         _ belka: Separator,

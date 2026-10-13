@@ -669,6 +669,131 @@ checkEqual("pusta siatka daje miejsce wstawienia 0",
            UkladSiatki.indeksWstawienia(punkt: CGPoint(x: 40, y: 40), ramki: []), 0)
 
 // ─────────────────────────────────────────────────────────────────────
+// AG-35 + AG-36 — CALA SEKCJA ZA BELKA I KILKA IKON NARAZ (0.2.46)
+// Zgloszenie z 2026-10-13: chwycenie belki przesuwalo SAMA belke, ikony
+// zostawaly na miejscu; zaznaczyc kilku ikon nie dalo sie wcale.
+// ─────────────────────────────────────────────────────────────────────
+let bMoje = Separator(nazwa: "Moje")
+let bInne = Separator(nazwa: "Inne")
+let pA = ElementUkladu.program("/Applications/Alfa.app")
+let pB = ElementUkladu.program("/Applications/Beta.app")
+let pG = ElementUkladu.program("/Applications/Gamma.app")
+let pD = ElementUkladu.program("/Applications/Delta.app")
+// [Moje] Alfa Beta [Inne] Gamma Delta
+let ukladDwochSekcji: [ElementUkladu] = [.belka(bMoje.id), pA, pB, .belka(bInne.id), pG, pD]
+
+let sekcjaMoje = UkladSiatki.sekcjaZaBelka(bMoje.id, w: ukladDwochSekcji)
+checkEqual("sekcja za belka to belka i ikony do nastepnej belki",
+           sekcjaMoje, [.belka(bMoje.id), pA, pB])
+checkEqual("ostatnia sekcja konczy sie na koncu kolejnosci",
+           UkladSiatki.sekcjaZaBelka(bInne.id, w: ukladDwochSekcji), [.belka(bInne.id), pG, pD])
+checkEqual("pusta belka to sama belka",
+           UkladSiatki.sekcjaZaBelka(bInne.id, w: [.belka(bMoje.id), .belka(bInne.id)]), [.belka(bInne.id)])
+checkEqual("belka spoza kolejnosci nie daje nic",
+           UkladSiatki.sekcjaZaBelka(UUID(), w: ukladDwochSekcji), [])
+
+// Sekcja "Moje" na koniec — ikony jada razem z belka, w swojej kolejnosci.
+let sekcjaNaKoniec = UkladSiatki.przenies(grupa: sekcjaMoje, przed: nil, doSekcji: .glowne,
+                                          kolejnosci: [.glowne: ukladDwochSekcji, .narzedzia: []])
+checkEqual("cala sekcja laduje na koncu razem z ikonami",
+           sekcjaNaKoniec[.glowne], [.belka(bInne.id), pG, pD, .belka(bMoje.id), pA, pB])
+// KONTROLA DODATNIA: stary ruch samej belki zostawial ikony — tak ma byc dalej dla samej belki.
+checkEqual("kontrola — sama belka (⌥) zostawia ikony na miejscu",
+           UkladSiatki.przenies(grupa: [.belka(bMoje.id)], przed: nil, doSekcji: .glowne,
+                                kolejnosci: [.glowne: ukladDwochSekcji])[.glowne],
+           [pA, pB, .belka(bInne.id), pG, pD, .belka(bMoje.id)])
+
+// Sekcja "Inne" przed "Moje".
+checkEqual("sekcja wstawiona przed inna belka",
+           UkladSiatki.przenies(grupa: [.belka(bInne.id), pG, pD], przed: .belka(bMoje.id), doSekcji: .glowne,
+                                kolejnosci: [.glowne: ukladDwochSekcji])[.glowne],
+           [.belka(bInne.id), pG, pD, .belka(bMoje.id), pA, pB])
+
+// Kilka zaznaczonych ikon z roznych miejsc: laduja razem, w kolejnosci z siatki.
+let zaznaczoneRazem = UkladSiatki.przenies(grupa: [pA, pD], przed: pG, doSekcji: .glowne,
+                                           kolejnosci: [.glowne: ukladDwochSekcji])
+checkEqual("zaznaczone ikony laduja razem przed celem",
+           zaznaczoneRazem[.glowne], [.belka(bMoje.id), pB, .belka(bInne.id), pA, pD, pG])
+
+// Grupa z obu sekcji naraz do narzedzi — nic sie nie dubluje i nic nie ginie.
+let tTerm = ElementUkladu.program("/Applications/Terminal.app")
+let zObu = UkladSiatki.przenies(grupa: [pA, tTerm], przed: nil, doSekcji: .narzedzia,
+                                kolejnosci: [.glowne: ukladDwochSekcji, .narzedzia: [tTerm]])
+checkEqual("grupa z obu sekcji trafia do celu bez dublowania", zObu[.narzedzia], [pA, tTerm])
+check("i znika z sekcji, z ktorej przyszla", !(zObu[.glowne] ?? []).contains(pA))
+checkEqual("liczba wszystkich pozycji sie nie zmienia",
+           (zObu[.glowne]?.count ?? 0) + (zObu[.narzedzia]?.count ?? 0), ukladDwochSekcji.count + 1)
+
+// Cel nalezacy do samej grupy = na koniec (upuszczenie na siebie nie moze zgubic grupy).
+checkEqual("cel w grupie znaczy 'na koniec'",
+           UkladSiatki.przenies(grupa: [pA, pB], przed: pB, doSekcji: .glowne,
+                                kolejnosci: [.glowne: [pA, pB, pG]])[.glowne], [pG, pA, pB])
+checkEqual("powtorzenia w grupie nie dubluja elementu",
+           UkladSiatki.przenies(grupa: [pA, pA], przed: nil, doSekcji: .glowne,
+                                kolejnosci: [.glowne: [pA, pB]])[.glowne], [pB, pA])
+checkEqual("pusta grupa nie rusza niczego",
+           UkladSiatki.przenies(grupa: [], przed: pA, doSekcji: .glowne,
+                                kolejnosci: [.glowne: ukladDwochSekcji])[.glowne], ukladDwochSekcji)
+
+// Wyczerpujaco: kazda sekcja przed kazdym elementem spoza niej — sklad musi sie zgadzac.
+var zleSklady = 0, probSekcji = 0
+for belka in [bMoje, bInne] {
+    let grupa = UkladSiatki.sekcjaZaBelka(belka.id, w: ukladDwochSekcji)
+    for cel in ukladDwochSekcji where !grupa.contains(cel) {
+        probSekcji += 1
+        let w = UkladSiatki.przenies(grupa: grupa, przed: cel, doSekcji: .glowne,
+                                     kolejnosci: [.glowne: ukladDwochSekcji])[.glowne] ?? []
+        let start = w.firstIndex(of: grupa[0]) ?? -1
+        let ciagla = start >= 0 && Array(w[start..<min(w.count, start + grupa.count)]) == grupa
+        if Set(w) != Set(ukladDwochSekcji) || w.count != ukladDwochSekcji.count || !ciagla
+            || w.firstIndex(of: cel) != start + grupa.count { zleSklady += 1 }
+    }
+}
+print("PROBKA KONTROLNA: sprawdzono \(probSekcji) przeniesien calej sekcji")
+check("kontrola dodatnia — przeniesien sekcji bylo wiecej niz jedno", probSekcji > 1)
+checkEqual("kazda sekcja laduje w calosci, ciagiem, tuz przed celem", zleSklady, 0)
+
+// AG-37 — sekcja celuje w GRANICE, nie w ikony (0.2.47). Zgloszenie:
+// "przez przypadek delikatnie za wysoko dam, to ikona z jednej sekcji wchodzi do tej,
+// ktora przenosilem". Kazdy punkt w pionie musi dawac miejsce przed belka, na gorze
+// albo na koncu — nigdy przed ikona w srodku sekcji.
+let mG = UkladSiatki.Metryka(szerokoscKafelka: 70, wysokoscKafelka: 100, wysokoscBelki: 32,
+                             odstepPoziomy: 4, odstepPionowy: 4, odstepPrzyBelce: 6)
+func pozycjeZ(_ elementy: [ElementUkladu]) -> [UkladSiatki.Pozycja] {
+    elementy.map { e -> UkladSiatki.Pozycja in
+        switch e {
+        case .belka(let id): return .belka(Separator(id: id, nazwa: ""))
+        case .program(let s): return .program(app(String(s.dropFirst(14).dropLast(4)), dni: 1))
+        }
+    }
+}
+let pozG = pozycjeZ(ukladDwochSekcji)
+let ramG = UkladSiatki.ramki(dla: pozG, szerokosc: 160, metryka: mG)
+let belkiG = pozG.map { if case .belka = $0 { return true } else { return false } }
+var zlychGranic = 0, punktowG = 0
+var trafioneGranice = Set<Int>()
+var yG: CGFloat = -50
+while yG < UkladSiatki.wysokosc(ramek: ramG) + 80 {
+    punktowG += 1
+    let g = UkladSiatki.granicaSekcji(y: yG, ramki: ramG, czyBelka: belkiG, odstep: 6)
+    if !(g.indeks == pozG.count || belkiG[g.indeks]) { zlychGranic += 1 }
+    trafioneGranice.insert(g.indeks)
+    yG += 3
+}
+print("PROBKA KONTROLNA: \(punktowG) punktow w pionie, granice trafione: \(trafioneGranice.sorted())")
+checkEqual("zaden punkt nie wstawia sekcji w srodek innej", zlychGranic, 0)
+checkEqual("osiagalne sa wszystkie granice: przed kazda belka i koniec",
+           trafioneGranice, Set([0, 3, pozG.count]))
+checkEqual("kursor nad srodkiem drugiej sekcji celuje w granice, nie w ikone",
+           [0, 3, pozG.count].contains(UkladSiatki.granicaSekcji(y: ramG[4].midY, ramki: ramG, czyBelka: belkiG, odstep: 6).indeks), true)
+checkEqual("pusta siatka daje granice 0",
+           UkladSiatki.granicaSekcji(y: 10, ramki: [], czyBelka: [], odstep: 6).indeks, 0)
+let bezBelkiNaGorze = pozycjeZ([pA, .belka(bInne.id), pG])
+let rB = UkladSiatki.ramki(dla: bezBelkiNaGorze, szerokosc: 160, metryka: mG)
+checkEqual("bez belki na gorze sama gora tez jest granica",
+           UkladSiatki.granicaSekcji(y: -20, ramki: rB, czyBelka: [false, true, false], odstep: 6).indeks, 0)
+
+// ─────────────────────────────────────────────────────────────────────
 // AG-24 — STRAZNIK SZEROKOSCI ODDAWANEJ RODZICOWI (0.2.25)
 // Oba uklady oddaja rodzicowi DOKLADNIE tyle, ile dostaly. Rzad "Ostatnie"
 // robil inaczej: byl sztywnym HStackiem i zadal swojej sumy — zmierzone
