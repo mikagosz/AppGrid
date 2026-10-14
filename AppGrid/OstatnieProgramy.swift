@@ -103,19 +103,21 @@ final class DziennikUruchomien {
     private static let klucz = "AppGrid.dziennikUruchomien"
 
     private(set) var wpisy: [String: Date]
+    private let magazyn: UserDefaults
 
-    init() {
-        wpisy = UserDefaults.standard.dictionary(forKey: Self.klucz) as? [String: Date] ?? [:]
+    init(defaults: UserDefaults = .standard) {
+        magazyn = defaults
+        wpisy = defaults.dictionary(forKey: Self.klucz) as? [String: Date] ?? [:]
     }
 
     func zapiszUruchomienie(_ app: InstalledApp, kiedy: Date = Date()) {
         wpisy[app.id] = kiedy
         wpisy = OstatnieProgramy.przytnij(wpisy)
-        UserDefaults.standard.set(wpisy, forKey: Self.klucz)
+        magazyn.set(wpisy, forKey: Self.klucz)
     }
 
     func wyczysc() {
         wpisy = [:]
-        UserDefaults.standard.removeObject(forKey: Self.klucz)
+        magazyn.removeObject(forKey: Self.klucz)
     }
 }

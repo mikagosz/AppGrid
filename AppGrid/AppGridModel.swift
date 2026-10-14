@@ -26,18 +26,23 @@ final class AppGridModel: ObservableObject {
 
     /// Suwak 1–5. Zapisywany od razu, bo ma przeżyć zamknięcie okna.
     @Published var iconScale: Int {
-        didSet { UserDefaults.standard.set(iconScale, forKey: Self.kluczRozmiaru) }
+        didSet { magazyn.set(iconScale, forKey: Self.kluczRozmiaru) }
     }
 
     static let wszystkie = String(localized: "All")
     private static let kluczRozmiaru = "AppGrid.iconScale"
 
-    let ustawienia = Ustawienia.shared
-    private let dziennik = DziennikUruchomien()
+    let ustawienia: Ustawienia
+    private let dziennik: DziennikUruchomien
+    private let magazyn: UserDefaults
     private var subskrypcja: AnyCancellable?
 
-    init() {
-        let zapisany = UserDefaults.standard.integer(forKey: Self.kluczRozmiaru)
+    /// `ustawienia`, `defaults`: a sample world for the Help pictures; the app itself uses the real ones.
+    init(ustawienia: Ustawienia = .shared, defaults: UserDefaults = .standard) {
+        self.ustawienia = ustawienia
+        magazyn = defaults
+        dziennik = DziennikUruchomien(defaults: defaults)
+        let zapisany = defaults.integer(forKey: Self.kluczRozmiaru)
         iconScale = (1...5).contains(zapisany) ? zapisany : 3
         // Przełączniki sekcji siedzą w ustawieniach, a rysuje je ten sam widok —
         // bez tego mostka zmiana w oknie ustawień nie odświeżyłaby listy.

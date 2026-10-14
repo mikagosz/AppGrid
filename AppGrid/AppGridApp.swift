@@ -7,6 +7,8 @@ enum AppGridMain {
     @MainActor
     static func main() {
         let app = NSApplication.shared
+        // `--export-help` / `--export-help-window`: PNGs of Help, then quit — before the window or shortcut exist.
+        HelpExport.runIfRequested()
         let delegate = AppDelegate()
         app.delegate = delegate
         app.setActivationPolicy(.regular)
@@ -73,6 +75,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         zastosujUstawienia()
+        // `--show-help`: okno Pomocy od razu — do obejrzenia po zmianach, bez szukania w menu.
+        if CommandLine.arguments.contains("--show-help") { HelpWindow.shared.show() }
         // Aktualizacje z wnętrza programu — raz w miesiącu, jak w pozostałych programach.
         Updates.shared.start()
         // Zmiany z okna ustawień wchodzą od razu, bez przycisku „zastosuj".
@@ -438,7 +442,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         pozycjaOkno.submenu = menuOkno
         glowne.addItem(pozycjaOkno)
 
+        let pozycjaPomoc = NSMenuItem()
+        let menuPomoc = NSMenu(title: String(localized: "Help"))
+        menuPomoc.addItem(
+            withTitle: HelpContent.menuItem.current,
+            action: #selector(pokazPomoc),
+            keyEquivalent: "?"
+        ).target = self
+        pozycjaPomoc.submenu = menuPomoc
+        glowne.addItem(pozycjaPomoc)
+        NSApp.helpMenu = menuPomoc
+
         NSApp.mainMenu = glowne
+    }
+
+    @objc private func pokazPomoc() {
+        HelpWindow.shared.show()
     }
 
     @objc private func odswiez() {

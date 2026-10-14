@@ -653,6 +653,14 @@ struct AppGridView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
             Spacer()
+            Button {
+                HelpWindow.shared.show()
+            } label: {
+                Image(systemName: "questionmark.circle")
+            }
+            .buttonStyle(.borderless)
+            .foregroundStyle(.secondary)
+            .help(HelpContent.menuItem.current)
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 6)

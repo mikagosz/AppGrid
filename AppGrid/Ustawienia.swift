@@ -289,8 +289,13 @@ final class Ustawienia: ObservableObject {
     /// Czy zmiana rozmiaru okna przez użytkownika ma nadpisywać zapamiętaną wartość.
     @Published var finderUczySie: Bool { didSet { zapisz(finderUczySie, K.finderUczySie) } }
 
-    private init() {
-        let d = UserDefaults.standard
+    /// Where the settings live. The Help pictures pass a sample store, so arranging made-up apps never
+    /// touches the user's own order, separators or hidden apps.
+    private let magazyn: UserDefaults
+
+    init(defaults: UserDefaults = .standard) {
+        magazyn = defaults
+        let d = defaults
 
         skrotWlaczony      = d.object(forKey: K.skrotWlaczony) as? Bool ?? true
         skrotKlawisz       = d.object(forKey: K.skrotKlawisz) as? Int ?? kVK_ANSI_A
@@ -352,7 +357,7 @@ final class Ustawienia: ObservableObject {
     }
 
     private func zapisz(_ wartosc: Any?, _ klucz: String) {
-        UserDefaults.standard.set(wartosc, forKey: klucz)
+        magazyn.set(wartosc, forKey: klucz)
     }
 
     /// Opis skrótu do pokazania w oknie ustawień, np. `⌃⌥⌘A`.
