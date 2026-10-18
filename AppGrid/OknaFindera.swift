@@ -231,9 +231,23 @@ final class OknaFindera: ObservableObject {
         AXUIElementSetAttributeValue(okno, kAXSizeAttribute as CFString, wartosc)
     }
 
+    /// Czy zmiana rozmiaru przyszła od ręki użytkownika.
+    ///
+    /// 🔴 Użytkownik 2026-10-18: folder A z podfolderami B i C — otwarcie C z zewnątrz
+    /// (`open`, inny program) dawało małe okno, a potem **A** pamiętał wymiar C.
+    /// Finder sam zmienia rozmiar okna przy otwieraniu (bounds z `.DS_Store`, domyślne
+    /// okno dla `open`), a moduł brał każde takie `AXWindowResized` za ręczną zmianę.
+    /// Ręczna zmiana — ciągnięcie za róg albo krawędź — zawsze idzie z wciśniętym
+    /// przyciskiem myszy; zmiana robiona przez Findera nie. `pressedMouseButtons`
+    /// nie wymaga żadnej zgody.
+    nonisolated static func recznaZmiana(przyciskiMyszy: Int) -> Bool {
+        przyciskiMyszy & 1 != 0
+    }
+
     /// Zapamiętuje rozmiar po tym, jak użytkownik ręcznie zmienił okno.
     private func zapamietaj(z okno: AXUIElement) {
         guard ustawienia.finderUczySie, !wlasnaZmiana, let rozmiar = rozmiar(okno) else { return }
+        guard Self.recznaZmiana(przyciskiMyszy: NSEvent.pressedMouseButtons) else { return }
         guard rozmiar.width > 200, rozmiar.height > 150 else { return }   // okno w trakcie animacji
 
         zegarNauki?.invalidate()

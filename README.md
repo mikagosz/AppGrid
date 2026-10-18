@@ -110,11 +110,11 @@ Headless, no Xcode UI and no window:
 cp Harness/E1-test-skanera.swift /tmp/main.swift
 swiftc -O AppGrid/AppScanner.swift /tmp/main.swift -o /tmp/E1-test && /tmp/E1-test
 
-# E2 — grid layout, sections, recents, hot corner, shortcut (204 assertions)
+# E2 — grid layout, sections, recents, hot corner, shortcut (236 assertions)
 cp Harness/E2-test-modulow.swift /tmp/main.swift
 swiftc -O AppGrid/AppScanner.swift AppGrid/Ustawienia.swift AppGrid/SkrotGlobalny.swift \
        AppGrid/AktywnyRog.swift AppGrid/OstatnieProgramy.swift AppGrid/OknaFindera.swift \
-       AppGrid/PelnyEkran.swift AppGrid/UkladSiatki.swift \
+       AppGrid/PelnyEkran.swift AppGrid/UkladSiatki.swift AppGrid/StartPrzyLogowaniu.swift \
        /tmp/main.swift -o /tmp/E2-test && /tmp/E2-test
 ```
 

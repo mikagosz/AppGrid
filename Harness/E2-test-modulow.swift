@@ -121,6 +121,14 @@ check("nierozpoznany folder w trybie OSOBNO NIE rusza okna",
 check("zepsuty wpis (zerowa szerokosc) NIE rusza okna",
       OknaFindera.rozmiarDlaFolderu(folder: "/Users/x/Zle", tryb: .osobnoPerFolder,
                                     zapamietane: zapamietane, globalny: globalny) == nil)
+// Uzytkownik 2026-10-18: Finder zmienia rozmiar sam przy otwieraniu okna — tego nie wolno
+// zapamietac. Ręczna zmiana idzie zawsze z wcisnietym lewym przyciskiem.
+check("zmiana bez wcisnietego przycisku to NIE reka uzytkownika",
+      !OknaFindera.recznaZmiana(przyciskiMyszy: 0))
+check("ciagniecie za rog (lewy przycisk) to reka uzytkownika",
+      OknaFindera.recznaZmiana(przyciskiMyszy: 1))
+check("sam prawy przycisk to NIE ciagniecie okna",
+      !OknaFindera.recznaZmiana(przyciskiMyszy: 2))
 checkEqual("tryb JEDEN DLA WSZYSTKICH narzuca globalny takze folderowi bez wpisu",
            OknaFindera.rozmiarDlaFolderu(folder: "/Users/x/Nowy", tryb: .jedenDlaWszystkich,
                                          zapamietane: zapamietane, globalny: globalny),
